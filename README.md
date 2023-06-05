@@ -6,7 +6,15 @@
 
 # GivTCP Battery Card by [@Codegnosis](https://www.github.com/Codegnosis)
 
-[home-assistant](home-assistant.io) battery card for [GivTCP](https://github.com/britkat1980/giv_tcp) users.
+[home-assistant](home-assistant.io) battery card for [GivTCP](https://github.com/britkat1980/giv_tcp) users. Displays
+some basic stats in a single card:
+
+- SOC %
+- SOC wH
+- Status (Charge/Discharge/Idle)
+- Time left to Charge/Discharge
+
+![PReview](./preview.png)
 
 ## Requirements
 
