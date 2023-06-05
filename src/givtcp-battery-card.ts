@@ -179,20 +179,19 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     const statsList: TemplateResult[] = [];
 
     const power = parseInt(this.getBatteryPowerEntity.state, 10);
-    const powerInverted = 0 - power;
 
-    let action = '';
+    let action = 'Idle';
     let estimatedTime = 0;
     let powerColourClass = '';
 
-    if (powerInverted < 0) {
+    if (power > 0) {
       powerColourClass = 'battery-power-out';
-      action = 'discharge';
+      action = 'Time to discharge';
       estimatedTime = this.getEstimatedTimeLeft;
     }
-    if (powerInverted > 0) {
+    if (power < 0) {
       powerColourClass = 'battery-power-in';
-      action = 'charge'
+      action = 'Time to charge'
       estimatedTime = this.getEstimatedChargeTime;
     }
 
@@ -201,7 +200,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     const timeLeft = html`
       <div class="stats-block">
         <span class="stats-value"> ${t0} </span>
-        <div class="stats-subtitle">Time to ${action}</div>
+        <div class="stats-subtitle">${action}</div>
       </div>
     `;
 
@@ -209,7 +208,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
     const powerUse = html`
       <div class="stats-block">
-        <span class="stats-value ${powerColourClass}"> ${Math.abs(powerInverted)} </span>
+        <span class="stats-value ${powerColourClass}"> ${Math.abs(power)} </span>
         Wh
         <div class="stats-subtitle">Power Usage</div>
       </div>
@@ -224,18 +223,6 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     const c = parseFloat(this.getBatteryCapacityKwhEntity.state);
 
     return html` <div class="battery-name">${this.config.name || 'Battery'}: ${c} kWh</div> `;
-  }
-
-  getStatusIcon(): string {
-    switch (this.getBatteryStatus) {
-      case 'charging':
-        return 'mdi:plus-box';
-      case 'discharging':
-        return 'mdi:minux-box';
-      case 'idle':
-      default:
-        return 'mdi:sleep';
-    }
   }
 
   getBatteryIcon(what: string): string {
