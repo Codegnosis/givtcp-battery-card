@@ -1,0 +1,23 @@
+name: Release
+on:
+  release:
+    types: [published]
+jobs:
+  release:
+    name: Prepare release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build the file
+        run: |
+          cd /home/runner/work/givtcp-battery-card/givtcp-battery-card
+          npm install
+          npm run build
+      - name: Upload zip to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: dist/givtcp-battery-card.js
+          asset_name: givtcp-battery-card.js
+          tag: ${{ github.ref }}
+          overwrite: true
