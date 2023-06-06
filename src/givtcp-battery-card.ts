@@ -72,7 +72,6 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       `soc_kwh`,
       `discharge_power`,
       `charge_power`,
-      `battery_capacity_kwh`,
     ];
 
     if (element.config?.entity) {
