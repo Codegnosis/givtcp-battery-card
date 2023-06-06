@@ -118,7 +118,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
   }
 
   renderStatus(): TemplateResult {
-    const status = this.getBatteryStatus.toUpperCase();
+    const status = this._getBatteryStatus.toUpperCase();
 
     return html`
       <div class="status">
@@ -130,7 +130,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
   renderStats(): TemplateResult[] {
     const statsList: TemplateResult[] = [];
 
-    const power = parseInt(this.getBatteryPowerEntity.state, 10);
+    const power = parseInt(this._getBatteryPowerEntity.state, 10);
 
     let action = 'Idle';
     let estimatedTime = 0;
@@ -139,12 +139,12 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     if (power > 0) {
       powerColourClass = 'battery-power-out';
       action = 'Time to discharge';
-      estimatedTime = this.getEstimatedTimeLeft;
+      estimatedTime = this._getEstimatedTimeLeft;
     }
     if (power < 0) {
       powerColourClass = 'battery-power-in';
       action = 'Time to charge'
-      estimatedTime = this.getEstimatedChargeTime;
+      estimatedTime = this._getEstimatedChargeTime;
     }
 
     const t0 = estimatedTime > 0 ? this.secondsToDuration(estimatedTime) : '0';
@@ -172,54 +172,42 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
   }
 
   renderName(): TemplateResult {
-    const c = parseFloat(this.getBatteryCapacityKwhEntity.state);
+    const c = parseFloat(this._getBatteryCapacityKwhEntity.state);
 
     return html` <div class="battery-name">${this.config.name || 'Battery'}: ${c} kWh</div> `;
   }
 
-  getBatteryIcon(what: string): string {
-    const socInt = parseInt(this.getSocEntity.state, 10);
-
-    let batteryIcon;
-    let batteryIconColour;
-    const prefix = this.getBatteryStatus === 'charging' ? '-charging' : '';
+  getBatteryIcon(): string {
+    const socInt = parseInt(this._getSocEntity.state, 10);
+    const prefix = this._getBatteryStatus === 'charging' ? '-charging' : '';
 
     if (socInt === 100) {
-      batteryIcon = `mdi:battery`;
-      batteryIconColour = '004517';
-    } else if (socInt >= 90) {
-      batteryIcon = `mdi:battery${prefix}-90`;
-      batteryIconColour = '004517';
-    } else if (socInt >= 80) {
-      batteryIcon = `mdi:battery${prefix}-80`;
-      batteryIconColour = '004517';
-    } else if (socInt >= 70) {
-      batteryIcon = `mdi:battery${prefix}-70`;
-      batteryIconColour = '43a047';
-    } else if (socInt >= 60) {
-      batteryIcon = `mdi:battery${prefix}-60`;
-      batteryIconColour = '43a047';
-    } else if (socInt >= 50) {
-      batteryIcon = `mdi:battery${prefix}-50`;
-      batteryIconColour = '43a047';
-    } else if (socInt >= 40) {
-      batteryIcon = `mdi:battery${prefix}-40`;
-      batteryIconColour = 'ffa600';
-    } else if (socInt >= 30) {
-      batteryIcon = `mdi:battery${prefix}-30`;
-      batteryIconColour = 'ffa600';
-    } else if (socInt >= 20) {
-      batteryIcon = `mdi:battery${prefix}-20`;
-      batteryIconColour = 'db4437';
-    } else if (socInt >= 10) {
-      batteryIcon = `mdi:battery${prefix}-10`;
-      batteryIconColour = 'db4437';
-    } else {
-      batteryIcon = `mdi:battery${prefix}-outline`;
-      batteryIconColour = '5e0000';
+      return 'mdi:battery';
     }
 
-    return what === 'icon' ? batteryIcon : batteryIconColour;
+    if(socInt < 10) {
+      return `mdi:battery${prefix}-outline`;
+    }
+
+    const suffix = Math.floor(socInt / 10) * 10
+
+    return `mdi:battery${prefix}-${suffix}`;
+  }
+
+  getBatteryColour(): string {
+    const socInt = parseInt(this._getSocEntity.state, 10);
+
+    if (socInt >= 80) {
+      return '004517';
+    } else if (socInt >= 50) {
+      return '43a047';
+    } else if (socInt >= 30) {
+      return 'ffa600';
+    } else if (socInt >= 10) {
+      return 'db4437';
+    } else {
+      return '5e0000';
+    }
   }
 
   // https://lit.dev/docs/components/rendering/
@@ -228,11 +216,11 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       return html``;
     }
 
-    const batteryIcon = this.getBatteryIcon('icon');
-    const batteryIconColour = this.getBatteryIcon('colour');
+    const batteryIcon = this.getBatteryIcon();
+    const batteryIconColour = this.getBatteryColour();
 
-    const soc = parseInt(this.getSocEntity.state, 10);
-    const socWh = Math.round(parseFloat(this.getSocKwhEntity.state) * 1000);
+    const soc = parseInt(this._getSocEntity.state, 10);
+    const socWh = Math.round(parseFloat(this._getSocKwhEntity.state) * 1000);
 
     return html`
       <ha-card>
@@ -273,32 +261,32 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return `${prefix}_${suffix}`;
   }
 
-  get getSocEntity(): HassEntity {
+  private get _getSocEntity(): HassEntity {
     return this.hass.states[`sensor.${this._getSensorPrefix}soc`];
   }
 
-  get getBatteryPowerEntity(): HassEntity {
+  private get _getBatteryPowerEntity(): HassEntity {
     return this.hass.states[`sensor.${this._getSensorPrefix}battery_power`];
   }
 
-  get getSocKwhEntity(): HassEntity {
+  private get _getSocKwhEntity(): HassEntity {
     return this.hass.states[`sensor.${this._getSensorPrefix}soc_kwh`];
   }
 
-  get getDischargePowerEntity(): HassEntity {
+  private get _getDischargePowerEntity(): HassEntity {
     return this.hass.states[`sensor.${this._getSensorPrefix}discharge_power`];
   }
 
-  get getChargePowerEntity(): HassEntity {
+  private get _getChargePowerEntity(): HassEntity {
     return this.hass.states[`sensor.${this._getSensorPrefix}charge_power`];
   }
 
-  get getBatteryCapacityKwhEntity(): HassEntity {
+  private get _getBatteryCapacityKwhEntity(): HassEntity {
     return this.hass.states[`sensor.${this._getSensorPrefix}battery_capacity_kwh`];
   }
 
-  get getBatteryStatus(): string {
-    const power = parseInt(this.getBatteryPowerEntity.state, 10);
+  private get _getBatteryStatus(): string {
+    const power = parseInt(this._getBatteryPowerEntity.state, 10);
 
     let status = '';
     if (power > 0) {
@@ -312,10 +300,10 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return status;
   }
 
-  get getEstimatedTimeLeft(): number {
+  private get _getEstimatedTimeLeft(): number {
     let timeSecs = 0;
-    const socWatts = parseFloat(this.getSocKwhEntity.state) * 1000;
-    const dischargePower = parseFloat(this.getDischargePowerEntity.state);
+    const socWatts = parseFloat(this._getSocKwhEntity.state) * 1000;
+    const dischargePower = parseFloat(this._getDischargePowerEntity.state);
 
     if (socWatts > 0 && dischargePower > 0) {
       const diffP = socWatts / dischargePower;
@@ -325,11 +313,11 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return timeSecs;
   }
 
-  get getEstimatedChargeTime(): number {
+  private get _getEstimatedChargeTime(): number {
     let timeSecs = 0;
-    const chargePower = parseFloat(this.getChargePowerEntity.state);
-    const socWatts = parseFloat(this.getSocKwhEntity.state) * 1000;
-    const capacityWatts = parseFloat(this.getBatteryCapacityKwhEntity.state) * 1000;
+    const chargePower = parseFloat(this._getChargePowerEntity.state);
+    const socWatts = parseFloat(this._getSocKwhEntity.state) * 1000;
+    const capacityWatts = parseFloat(this._getBatteryCapacityKwhEntity.state) * 1000;
 
     if (chargePower > 0) {
       const socDiff = capacityWatts - socWatts;
