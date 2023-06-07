@@ -3,61 +3,17 @@ import {
   HomeAssistant,
   LovelaceCardEditor,
   LovelaceCard,
-  LovelaceCardConfig,
-  LovelaceConfig,
-  fireEvent
-} from 'custom-card-helpers'; // This is a community maintained npm module with common helper functions/types. https://github.com/custom-cards/custom-card-helpers
-import {LitElement, html, TemplateResult, PropertyValues, CSSResultGroup, css} from 'lit';
+  LovelaceCardConfig
+} from 'custom-card-helpers';
+import { LitElement, html, TemplateResult, PropertyValues, CSSResultGroup } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HassEntity } from 'home-assistant-js-websocket';
 
-@customElement('givtcp-battery-card-editor')
-export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardEditor {
-  @property() hass!: HomeAssistant;
-  lovelace?: LovelaceConfig | undefined;
-  @state() private _config!: LovelaceCardConfig;
+import './components/countdown'
+import './editor';
+import { styleCss } from './style';
 
-  public setConfig(config: LovelaceCardConfig): void {
-    this._config = config;
-  }
-
-  get _getInvertorList(): string[] {
-    return this.hass ? Object.keys(this.hass.states).filter((eid) => eid.includes('invertor_serial_number')) : [];
-  }
-
-  get _schema() {
-    return [
-      {name: 'name', label: 'Name', selector: {text: {}}},
-      {
-        label: 'Invertor (Required)',
-        name: 'entity',
-        selector: {entity: {multiple: false, include_entities: this._getInvertorList}},
-      },
-    ];
-  }
-
-  protected render(): TemplateResult | void {
-    if (!this.hass|| !this._config) {
-      return html``;
-    }
-
-    return html`
-      <ha-form
-        .hass=${this.hass}
-        .data=${this._config}
-        .schema=${this._schema}
-        @value-changed=${this._valueChanged}
-      ></ha-form>
-    `;
-  }
-
-  private _valueChanged(ev: CustomEvent): void {
-    const config = ev.detail.value;
-    fireEvent(this, 'config-changed', { config });
-  }
-
-  static styles: CSSResultGroup = css``;
-}
+import { version } from '../package.json';
 
 // This puts your card into the UI card picker dialog
 (window as any).customCards = (window as any).customCards || [];
@@ -66,6 +22,13 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
   name: 'GivTCP Battery Card',
   description: 'A card to display GivTCP battery info',
 });
+
+/* eslint no-console: 0 */
+console.info(
+  `%c GIVTCP-BATTERY-CARD %c ${version}`,
+  'color: green; font-weight: bold; background: black',
+  'color: green; font-weight: bold;',
+);
 
 @customElement('givtcp-battery-card')
 export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
@@ -119,7 +82,6 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       `soc_kwh`,
       `discharge_power`,
       `charge_power`,
-      `battery_capacity_kwh`,
     ];
 
     if (element.config?.entity) {
@@ -166,7 +128,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
   }
 
   renderStatus(): TemplateResult {
-    const status = this.getBatteryStatus.toUpperCase();
+    const status = this._getBatteryStatus.toUpperCase();
 
     return html`
       <div class="status">
@@ -178,24 +140,35 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
   renderStats(): TemplateResult[] {
     const statsList: TemplateResult[] = [];
 
-    const power = parseInt(this.getBatteryPowerEntity.state, 10);
+    const power = parseInt(this._getBatteryPowerEntity.state, 10);
 
-    let action = 'Idle';
+    let action = 'Not active';
     let estimatedTime = 0;
     let powerColourClass = '';
+    let powerSubtitle = html`<ha-icon icon="mdi:pause-box-outline"></ha-icon>Not active`;
 
     if (power > 0) {
       powerColourClass = 'battery-power-out';
       action = 'Time to discharge';
-      estimatedTime = this.getEstimatedTimeLeft;
+      estimatedTime = this._getEstimatedTimeLeft;
+      powerSubtitle = html`<ha-icon icon="mdi:export"></ha-icon>Power Out`;
     }
     if (power < 0) {
       powerColourClass = 'battery-power-in';
       action = 'Time to charge'
-      estimatedTime = this.getEstimatedChargeTime;
+      estimatedTime = this._getEstimatedChargeTime;
+      powerSubtitle = html`<ha-icon icon="mdi:import"></ha-icon>Power In`;
     }
 
-    const t0 = estimatedTime > 0 ? this.secondsToDuration(estimatedTime) : '0';
+    let t0 = html`0`;
+
+    if(estimatedTime > 0) {
+      t0 = html`
+        <givtcp-battery-card-countdown 
+            secs=${estimatedTime}
+        ></givtcp-battery-card-countdown>
+      `;
+    }
 
     const timeLeft = html`
       <div class="stats-block">
@@ -208,9 +181,11 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
     const powerUse = html`
       <div class="stats-block">
-        <span class="stats-value ${powerColourClass}"> ${Math.abs(power)} </span>
+        <span class="stats-value ${powerColourClass}">
+          ${Math.abs(power)} 
+        </span>
         Wh
-        <div class="stats-subtitle">Power Usage</div>
+        <div class="stats-subtitle">${powerSubtitle}</div>
       </div>
     `;
 
@@ -220,54 +195,42 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
   }
 
   renderName(): TemplateResult {
-    const c = parseFloat(this.getBatteryCapacityKwhEntity.state);
+    const c = parseFloat(this._getBatteryCapacityKwhEntity.state);
 
     return html` <div class="battery-name">${this.config.name || 'Battery'}: ${c} kWh</div> `;
   }
 
-  getBatteryIcon(what: string): string {
-    const socInt = parseInt(this.getSocEntity.state, 10);
-
-    let batteryIcon;
-    let batteryIconColour;
-    const prefix = this.getBatteryStatus === 'charging' ? '-charging' : '';
+  getBatteryIcon(): string {
+    const socInt = parseInt(this._getSocEntity.state, 10);
+    const prefix = this._getBatteryStatus === 'charging' ? '-charging' : '';
 
     if (socInt === 100) {
-      batteryIcon = `mdi:battery`;
-      batteryIconColour = '004517';
-    } else if (socInt >= 90) {
-      batteryIcon = `mdi:battery${prefix}-90`;
-      batteryIconColour = '004517';
-    } else if (socInt >= 80) {
-      batteryIcon = `mdi:battery${prefix}-80`;
-      batteryIconColour = '004517';
-    } else if (socInt >= 70) {
-      batteryIcon = `mdi:battery${prefix}-70`;
-      batteryIconColour = '43a047';
-    } else if (socInt >= 60) {
-      batteryIcon = `mdi:battery${prefix}-60`;
-      batteryIconColour = '43a047';
-    } else if (socInt >= 50) {
-      batteryIcon = `mdi:battery${prefix}-50`;
-      batteryIconColour = '43a047';
-    } else if (socInt >= 40) {
-      batteryIcon = `mdi:battery${prefix}-40`;
-      batteryIconColour = 'ffa600';
-    } else if (socInt >= 30) {
-      batteryIcon = `mdi:battery${prefix}-30`;
-      batteryIconColour = 'ffa600';
-    } else if (socInt >= 20) {
-      batteryIcon = `mdi:battery${prefix}-20`;
-      batteryIconColour = 'db4437';
-    } else if (socInt >= 10) {
-      batteryIcon = `mdi:battery${prefix}-10`;
-      batteryIconColour = 'db4437';
-    } else {
-      batteryIcon = `mdi:battery${prefix}-outline`;
-      batteryIconColour = '5e0000';
+      return 'mdi:battery';
     }
 
-    return what === 'icon' ? batteryIcon : batteryIconColour;
+    if(socInt < 10) {
+      return `mdi:battery${prefix}-outline`;
+    }
+
+    const suffix = Math.floor(socInt / 10) * 10
+
+    return `mdi:battery${prefix}-${suffix}`;
+  }
+
+  getBatteryColour(): string {
+    const socInt = parseInt(this._getSocEntity.state, 10);
+
+    if (socInt >= 80) {
+      return '004517';
+    } else if (socInt >= 50) {
+      return '43a047';
+    } else if (socInt >= 30) {
+      return 'ffa600';
+    } else if (socInt >= 10) {
+      return 'db4437';
+    } else {
+      return '5e0000';
+    }
   }
 
   // https://lit.dev/docs/components/rendering/
@@ -276,11 +239,11 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       return html``;
     }
 
-    const batteryIcon = this.getBatteryIcon('icon');
-    const batteryIconColour = this.getBatteryIcon('colour');
+    const batteryIcon = this.getBatteryIcon();
+    const batteryIconColour = this.getBatteryColour();
 
-    const soc = parseInt(this.getSocEntity.state, 10);
-    const socWh = Math.round(parseFloat(this.getSocKwhEntity.state) * 1000);
+    const soc = parseInt(this._getSocEntity.state, 10);
+    const socWh = Math.round(parseFloat(this._getSocKwhEntity.state) * 1000);
 
     return html`
       <ha-card>
@@ -321,32 +284,32 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return `${prefix}_${suffix}`;
   }
 
-  get getSocEntity(): HassEntity {
+  private get _getSocEntity(): HassEntity {
     return this.hass.states[`sensor.${this._getSensorPrefix}soc`];
   }
 
-  get getBatteryPowerEntity(): HassEntity {
+  private get _getBatteryPowerEntity(): HassEntity {
     return this.hass.states[`sensor.${this._getSensorPrefix}battery_power`];
   }
 
-  get getSocKwhEntity(): HassEntity {
+  private get _getSocKwhEntity(): HassEntity {
     return this.hass.states[`sensor.${this._getSensorPrefix}soc_kwh`];
   }
 
-  get getDischargePowerEntity(): HassEntity {
+  private get _getDischargePowerEntity(): HassEntity {
     return this.hass.states[`sensor.${this._getSensorPrefix}discharge_power`];
   }
 
-  get getChargePowerEntity(): HassEntity {
+  private get _getChargePowerEntity(): HassEntity {
     return this.hass.states[`sensor.${this._getSensorPrefix}charge_power`];
   }
 
-  get getBatteryCapacityKwhEntity(): HassEntity {
+  private get _getBatteryCapacityKwhEntity(): HassEntity {
     return this.hass.states[`sensor.${this._getSensorPrefix}battery_capacity_kwh`];
   }
 
-  get getBatteryStatus(): string {
-    const power = parseInt(this.getBatteryPowerEntity.state, 10);
+  private get _getBatteryStatus(): string {
+    const power = parseInt(this._getBatteryPowerEntity.state, 10);
 
     let status = '';
     if (power > 0) {
@@ -360,10 +323,10 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return status;
   }
 
-  get getEstimatedTimeLeft(): number {
+  private get _getEstimatedTimeLeft(): number {
     let timeSecs = 0;
-    const socWatts = parseFloat(this.getSocKwhEntity.state) * 1000;
-    const dischargePower = parseFloat(this.getDischargePowerEntity.state);
+    const socWatts = parseFloat(this._getSocKwhEntity.state) * 1000;
+    const dischargePower = parseFloat(this._getDischargePowerEntity.state);
 
     if (socWatts > 0 && dischargePower > 0) {
       const diffP = socWatts / dischargePower;
@@ -373,11 +336,11 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return timeSecs;
   }
 
-  get getEstimatedChargeTime(): number {
+  private get _getEstimatedChargeTime(): number {
     let timeSecs = 0;
-    const chargePower = parseFloat(this.getChargePowerEntity.state);
-    const socWatts = parseFloat(this.getSocKwhEntity.state) * 1000;
-    const capacityWatts = parseFloat(this.getBatteryCapacityKwhEntity.state) * 1000;
+    const chargePower = parseFloat(this._getChargePowerEntity.state);
+    const socWatts = parseFloat(this._getSocKwhEntity.state) * 1000;
+    const capacityWatts = parseFloat(this._getBatteryCapacityKwhEntity.state) * 1000;
 
     if (chargePower > 0) {
       const socDiff = capacityWatts - socWatts;
@@ -390,153 +353,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
   // https://lit.dev/docs/components/styles/
   static get styles(): CSSResultGroup {
-    return css`
-  :host {
-    --vc-background: var(--ha-card-background, var(--card-background-color, white));
-    --vc-primary-text-color: var(--primary-text-color);
-    --vc-secondary-text-color: var(--secondary-text-color);
-    --vc-icon-color: var(--secondary-text-color);
-    --vc-toolbar-background: var(--vc-background);
-    --vc-toolbar-text-color: var(--secondary-text-color);
-    --vc-toolbar-icon-color: var(--secondary-text-color);
-    --vc-divider-color: var(--entities-divider-color, var(--divider-color));
-    --vc-spacing: 10px;
-
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-  }
-
-  ha-card {
-    flex-direction: column;
-    flex: 1;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .preview {
-    background: var(--vc-background);
-    position: relative;
-    text-align: center;
-
-    &.not-available {
-      filter: grayscale(1);
-    }
-  }
-
-  .fill-gap {
-    flex-grow: 1;
-  }
-
-  .more-info ha-icon {
-    display: flex;
-  }
-
-  .status {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    direction: ltr;
-  }
-
-  .status-text {
-    color: var(--vc-secondary-text-color);
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-  }
-
-  .status mwc-circular-progress {
-    --mdc-theme-primary: var(--vc-secondary-text-color) !important;
-    margin-left: var(--vc-spacing);
-  }
-
-  .battery-name {
-    text-align: center;
-    font-weight: bold;
-    color: var(--vc-primary-text-color);
-    font-size: 16px;
-  }
-
-  .not-available .offline {
-    text-align: center;
-    color: var(--vc-primary-text-color);
-    font-size: 16px;
-  }
-
-  .metadata {
-    margin: var(--vc-spacing) auto;
-  }
-
-  .stats-wrapper {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-evenly;
-    color: var(--vc-secondary-text-color);
-  }
-
-  .stats {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-    color: var(--vc-secondary-text-color);
-
-    &:last-of-type {
-      border-right: 0px;
-    }
-  }
-
-  .stats-block {
-    cursor: pointer;
-    margin: var(--vc-spacing) 0px;
-    text-align: center;
-    //border-top: 1px solid var(--vc-divider-color);
-    flex-grow: 1;
-
-    &:last-of-type {
-      border-right: 0px;
-    }
-  }
-
-  .stats-value {
-    font-size: 20px;
-    color: var(--vc-primary-text-color);
-  }
-
-  ha-icon {
-    color: var(--vc-icon-color);
-  }
-
-  .icon-info {
-    display: inline-block;
-    vertical-align: middle;
-  }
-
-  .icon-title {
-    color: var(--vc-primary-text-color);
-    display: block;
-    vertical-align: middle;
-    padding: 0 3px;
-    font-size: 50px;
-    margin: 3px;
-  }
-
-  .icon-subtitle {
-    display: block;
-    vertical-align: middle;
-    padding: 0 3px;
-    font-size: 30px;
-    margin-top: 25px;
-  }
-
-  .battery-power-out {
-    color: #db4437;
-  }
-
-  .battery-power-in {
-    color: #43a047;
-  }
-`;
+    return styleCss;
   }
 }
 declare global {
