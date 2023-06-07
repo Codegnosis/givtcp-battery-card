@@ -9,6 +9,7 @@ import { LitElement, html, TemplateResult, PropertyValues, CSSResultGroup } from
 import { customElement, property, state } from 'lit/decorators.js';
 import { HassEntity } from 'home-assistant-js-websocket';
 
+import './components/countdown'
 import './editor';
 import { styleCss } from './style';
 
@@ -150,7 +151,15 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       powerSubtitle = html`<ha-icon icon="mdi:import"></ha-icon>Power In`;
     }
 
-    const t0 = estimatedTime > 0 ? this.secondsToDuration(estimatedTime) : '0';
+    let t0 = html`0`;
+
+    if(estimatedTime > 0) {
+      t0 = html`
+        <givtcp-battery-card-countdown 
+            secs=${estimatedTime}
+        ></givtcp-battery-card-countdown>
+      `;
+    }
 
     const timeLeft = html`
       <div class="stats-block">
