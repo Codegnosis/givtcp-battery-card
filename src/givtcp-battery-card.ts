@@ -13,6 +13,8 @@ import './components/countdown'
 import './editor';
 import { styleCss } from './style';
 
+import { version } from '../package.json';
+
 // This puts your card into the UI card picker dialog
 (window as any).customCards = (window as any).customCards || [];
 (window as any).customCards.push({
@@ -20,6 +22,13 @@ import { styleCss } from './style';
   name: 'GivTCP Battery Card',
   description: 'A card to display GivTCP battery info',
 });
+
+/* eslint no-console: 0 */
+console.info(
+  `%c GIVTCP-BATTERY-CARD %c ${version}`,
+  'color: green; font-weight: bold; background: black',
+  'color: green; font-weight: bold;',
+);
 
 @customElement('givtcp-battery-card')
 export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
