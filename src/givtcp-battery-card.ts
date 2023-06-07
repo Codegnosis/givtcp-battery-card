@@ -132,19 +132,22 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
     const power = parseInt(this._getBatteryPowerEntity.state, 10);
 
-    let action = 'Idle';
+    let action = 'Not active';
     let estimatedTime = 0;
     let powerColourClass = '';
+    let powerSubtitle = html`<ha-icon icon="mdi:pause-box-outline"></ha-icon>Not active`;
 
     if (power > 0) {
       powerColourClass = 'battery-power-out';
       action = 'Time to discharge';
       estimatedTime = this._getEstimatedTimeLeft;
+      powerSubtitle = html`<ha-icon icon="mdi:export"></ha-icon>Power Out`;
     }
     if (power < 0) {
       powerColourClass = 'battery-power-in';
       action = 'Time to charge'
       estimatedTime = this._getEstimatedChargeTime;
+      powerSubtitle = html`<ha-icon icon="mdi:import"></ha-icon>Power In`;
     }
 
     const t0 = estimatedTime > 0 ? this.secondsToDuration(estimatedTime) : '0';
@@ -160,9 +163,11 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
     const powerUse = html`
       <div class="stats-block">
-        <span class="stats-value ${powerColourClass}"> ${Math.abs(power)} </span>
+        <span class="stats-value ${powerColourClass}">
+          ${Math.abs(power)} 
+        </span>
         Wh
-        <div class="stats-subtitle">Power Usage</div>
+        <div class="stats-subtitle">${powerSubtitle}</div>
       </div>
     `;
 
