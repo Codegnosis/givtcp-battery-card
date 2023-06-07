@@ -108,25 +108,6 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return this.clientHeight > 0 ? Math.ceil(this.clientHeight / 50) : 3;
   }
 
-  secondsToDuration(d: number) {
-    const leftPad = (num: number) => (num < 10 ? `0${num}` : num);
-
-    const h = Math.floor(d / 3600);
-    const m = Math.floor((d % 3600) / 60);
-    const s = Math.floor((d % 3600) % 60);
-
-    if (h > 0) {
-      return `${h}:${leftPad(m)}:${leftPad(s)}`;
-    }
-    if (m > 0) {
-      return `${m}:${leftPad(s)}`;
-    }
-    if (s > 0) {
-      return '' + s;
-    }
-    return null;
-  }
-
   renderStatus(): TemplateResult {
     const status = this._getBatteryStatus.toUpperCase();
 
