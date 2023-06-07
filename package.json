@@ -37,6 +37,7 @@
     "eslint-config-prettier": "^8.8.0",
     "home-assistant-js-websocket": "^8.0.1",
     "prettier": "^2.8.8",
+    "rimraf": "^5.0.1",
     "typescript": "^5.0.4",
     "vite": "^4.3.9",
     "vite-plugin-eslint": "^1.8.1"
@@ -46,7 +47,7 @@
   },
   "scripts": {
     "dev": "vite --host",
-    "build": "tsc && vite build",
+    "build": "rimraf dist && rimraf types && tsc && vite build",
     "lint": "eslint --ext .ts --ignore-path .gitignore --fix src",
     "format": "prettier .  --write"
   }
