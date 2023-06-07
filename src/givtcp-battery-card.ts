@@ -123,10 +123,10 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
     const power = parseInt(this._getBatteryPowerEntity.state, 10);
 
-    let action = 'Not active';
+    let action = 'No load';
     let estimatedTime = 0;
     let powerColourClass = '';
-    let powerSubtitle = html`<ha-icon icon="mdi:pause-box-outline"></ha-icon>Not active`;
+    let powerSubtitle = html`<ha-icon icon="mdi:pause-box-outline"></ha-icon>No load`;
 
     if (power > 0) {
       powerColourClass = 'battery-power-out';
