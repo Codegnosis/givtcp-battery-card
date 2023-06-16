@@ -3,7 +3,7 @@ import {
   HomeAssistant,
   LovelaceCardEditor,
   LovelaceCard,
-  LovelaceCardConfig
+  LovelaceCardConfig, fireEvent
 } from 'custom-card-helpers';
 import { LitElement, html, TemplateResult, PropertyValues, CSSResultGroup } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
@@ -58,6 +58,28 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
   @property() hass!: HomeAssistant;
 
   @state() private config!: LovelaceCardConfig;
+
+  firstUpdated() {
+    if(this?.shadowRoot) {
+      const battPower = this.shadowRoot.getElementById('gtpc-battery-detail-battery-power');
+      this._attacheEventListener(battPower)
+
+      const soc = this.shadowRoot.getElementById('gtpc-battery-detail-soc');
+      this._attacheEventListener(soc)
+    }
+  }
+
+  private _attacheEventListener(elem: HTMLElement | null): void {
+    if (elem && (elem instanceof HTMLElement)) {
+      elem.addEventListener('click', (e: MouseEvent) => {
+        const type = elem.getAttribute('data-entity-id');
+        if (type) {
+          e.stopPropagation();
+          fireEvent(this, 'hass-more-info', { entityId: type });
+        }
+      });
+    }
+  }
 
   // https://lit.dev/docs/components/properties/#accessors-custom
   public setConfig(config: LovelaceCardConfig): void {
@@ -174,7 +196,11 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     statsList.push(timeLeft);
 
     const powerUse = html`
-      <div class="stats-block">
+      <div 
+          class="stats-block" 
+          data-entity-id="${`sensor.${this._getSensorPrefix}battery_power`}"
+          id="gtpc-battery-detail-battery-power"
+      >
         <span class="stats-value ${powerColourClass}">
           ${Math.abs(power)} 
         </span>
@@ -257,7 +283,11 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
           <div class="stats-wrapper">
             <div class="stats">
-              <div class="stats-block">
+              <div 
+                  class="stats-block" 
+                  data-entity-id="${`sensor.${this._getSensorPrefix}soc`}"
+                  id="gtpc-battery-detail-soc"
+              >
                 <ha-icon icon="${batteryIcon}" style="color:rgb(${batteryIconColour});--mdc-icon-size: 120px;"></ha-icon>
                 <span class="icon-info">
                   <span class="icon-title"> ${soc}% </span>
