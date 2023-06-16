@@ -3,17 +3,30 @@ import {
   HomeAssistant,
   LovelaceCardEditor,
   LovelaceCard,
-  LovelaceCardConfig
+  LovelaceCardConfig, fireEvent
 } from 'custom-card-helpers';
 import { LitElement, html, TemplateResult, PropertyValues, CSSResultGroup } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HassEntity } from 'home-assistant-js-websocket';
+
+import {
+  SOC_THRESH_HIGH,
+  SOC_THRESH_HIGH_COLOUR,
+  SOC_THRESH_LOW,
+  SOC_THRESH_LOW_COLOUR,
+  SOC_THRESH_MED,
+  SOC_THRESH_MED_COLOUR,
+  SOC_THRESH_V_HIGH,
+  SOC_THRESH_V_HIGH_COLOUR,
+  SOC_THRESH_V_LOW_COLOUR
+} from "./constants";
 
 import './components/countdown'
 import './editor';
 import { styleCss } from './style';
 
 import { version } from '../package.json';
+import {ConfigUtils} from "./config-utils";
 
 // This puts your card into the UI card picker dialog
 (window as any).customCards = (window as any).customCards || [];
@@ -46,6 +59,28 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
   @state() private config!: LovelaceCardConfig;
 
+  firstUpdated() {
+    if(this?.shadowRoot) {
+      const battPower = this.shadowRoot.getElementById('gtpc-battery-detail-battery-power');
+      this._attacheEventListener(battPower)
+
+      const soc = this.shadowRoot.getElementById('gtpc-battery-detail-soc');
+      this._attacheEventListener(soc)
+    }
+  }
+
+  private _attacheEventListener(elem: HTMLElement | null): void {
+    if (elem && (elem instanceof HTMLElement)) {
+      elem.addEventListener('click', (e: MouseEvent) => {
+        const type = elem.getAttribute('data-entity-id');
+        if (type) {
+          e.stopPropagation();
+          fireEvent(this, 'hass-more-info', { entityId: type });
+        }
+      });
+    }
+  }
+
   // https://lit.dev/docs/components/properties/#accessors-custom
   public setConfig(config: LovelaceCardConfig): void {
     // Check for required fields and that they are of the proper format
@@ -57,7 +92,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     }
 
     this.config = {
-      name: 'Battery',
+      ...ConfigUtils.getDefaultConfig(),
       ...config,
     };
   }
@@ -161,7 +196,11 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     statsList.push(timeLeft);
 
     const powerUse = html`
-      <div class="stats-block">
+      <div 
+          class="stats-block" 
+          data-entity-id="${`sensor.${this._getSensorPrefix}battery_power`}"
+          id="gtpc-battery-detail-battery-power"
+      >
         <span class="stats-value ${powerColourClass}">
           ${Math.abs(power)} 
         </span>
@@ -201,16 +240,27 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
   getBatteryColour(): string {
     const socInt = parseInt(this._getSocEntity.state, 10);
 
-    if (socInt >= 80) {
-      return '004517';
-    } else if (socInt >= 50) {
-      return '43a047';
-    } else if (socInt >= 30) {
-      return 'ffa600';
-    } else if (socInt >= 10) {
-      return 'db4437';
+    const socVH = (this.config?.soc_threshold_very_high) ? this.config.soc_threshold_very_high : SOC_THRESH_V_HIGH;
+    const socH = (this.config?.soc_threshold_high) ? this.config.soc_threshold_high : SOC_THRESH_HIGH;
+    const socM = (this.config?.soc_threshold_medium) ? this.config.soc_threshold_medium : SOC_THRESH_MED;
+    const socL = (this.config?.soc_threshold_low) ? this.config.soc_threshold_low : SOC_THRESH_LOW;
+
+    const socVHCol = (this.config?.soc_threshold_very_high_colour) ? this.config.soc_threshold_very_high_colour : SOC_THRESH_V_HIGH_COLOUR;
+    const socHCol = (this.config?.soc_threshold_high_colour) ? this.config.soc_threshold_high_colour : SOC_THRESH_HIGH_COLOUR;
+    const socMCol = (this.config?.soc_threshold_medium_colour) ? this.config.soc_threshold_medium_colour : SOC_THRESH_MED_COLOUR;
+    const socLCol = (this.config?.soc_threshold_low_colour) ? this.config.soc_threshold_low_colour : SOC_THRESH_LOW_COLOUR;
+    const socVLCol = (this.config?.soc_threshold_very_low_colour) ? this.config.soc_threshold_very_low_colour : SOC_THRESH_V_LOW_COLOUR;
+
+    if (socInt >= socVH) {
+      return `${socVHCol[0]}, ${socVHCol[1]}, ${socVHCol[2]}`;
+    } else if (socInt >= socH) {
+      return `${socHCol[0]}, ${socHCol[1]}, ${socHCol[2]}`;
+    } else if (socInt >= socM) {
+      return `${socMCol[0]}, ${socMCol[1]}, ${socMCol[2]}`;
+    } else if (socInt >= socL) {
+      return `${socLCol[0]}, ${socLCol[1]}, ${socLCol[2]}`;
     } else {
-      return '5e0000';
+      return `${socVLCol[0]}, ${socVLCol[1]}, ${socVLCol[2]}`;
     }
   }
 
@@ -233,8 +283,12 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
           <div class="stats-wrapper">
             <div class="stats">
-              <div class="stats-block">
-                <ha-icon icon="${batteryIcon}" style="color:#${batteryIconColour};--mdc-icon-size: 120px;"></ha-icon>
+              <div 
+                  class="stats-block" 
+                  data-entity-id="${`sensor.${this._getSensorPrefix}soc`}"
+                  id="gtpc-battery-detail-soc"
+              >
+                <ha-icon icon="${batteryIcon}" style="color:rgb(${batteryIconColour});--mdc-icon-size: 120px;"></ha-icon>
                 <span class="icon-info">
                   <span class="icon-title"> ${soc}% </span>
                   <span class="icon-subtitle"> ${socWh} Wh </span>
