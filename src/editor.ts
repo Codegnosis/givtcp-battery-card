@@ -123,6 +123,14 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
                     color_rgb: {}
                 }
             },
+            {
+                name: 'display_abs_power',
+                label: 'Display power usage as absolute value',
+                default: defaults.display_abs_power,
+                selector: {
+                    boolean: {}
+                }
+            }
         ];
     }
 
