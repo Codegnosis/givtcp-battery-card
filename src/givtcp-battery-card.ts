@@ -10,6 +10,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { HassEntity } from 'home-assistant-js-websocket';
 
 import {
+  DISPLAY_ABS_POWER,
   SOC_THRESH_HIGH,
   SOC_THRESH_HIGH_COLOUR,
   SOC_THRESH_LOW,
@@ -195,6 +196,10 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
     statsList.push(timeLeft);
 
+    const displayAbsPower = (this.config.display_abs_power !== undefined) ? this.config.display_abs_power : DISPLAY_ABS_POWER;
+
+    const p = (displayAbsPower) ? Math.abs(power) : power;
+
     const powerUse = html`
       <div 
           class="stats-block" 
@@ -202,7 +207,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
           id="gtpc-battery-detail-battery-power"
       >
         <span class="stats-value ${powerColourClass}">
-          ${Math.abs(power)} 
+          ${p} 
         </span>
         Wh
         <div class="stats-subtitle">${powerSubtitle}</div>
