@@ -154,27 +154,71 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     `;
   }
 
+  renderReserveAndCapacity(): TemplateResult {
+    const reserve = this._getBatteryPowerReserve.state;
+    const reserveWatts = Math.round(this._getReserveWatts);
+    const capacity = parseFloat(this._getBatteryCapacityKwhEntity.state);
+
+    return html`
+      <div class="status">
+        <span class="status-text"> Capacity: ${capacity} kWh | Reserve: ${reserveWatts} Wh (${reserve}%) </span>
+      </div>
+    `;
+  }
+
+  renderPowerUsage(): TemplateResult {
+
+    const power = parseInt(this._getBatteryPowerEntity.state, 10);
+    let powerColourClass = '';
+    let powerSubtitle = html`<ha-icon icon="mdi:pause-box-outline"></ha-icon>`;
+
+    const displayAbsPower = (this.config.display_abs_power !== undefined) ? this.config.display_abs_power : DISPLAY_ABS_POWER;
+
+    const p = (displayAbsPower) ? Math.abs(power) : power;
+
+    if (power > 0) {
+      powerColourClass = 'battery-power-out';
+      powerSubtitle = html`<ha-icon icon="mdi:export"></ha-icon>`;
+    }
+
+    if (power < 0) {
+      powerColourClass = 'battery-power-in';
+      powerSubtitle = html`<ha-icon icon="mdi:import"></ha-icon>`;
+    }
+
+    return html`
+      <div class="icon-subtitle-small">
+        ${powerSubtitle}
+        <span class="${powerColourClass}">
+          ${p} 
+        </span>
+        Wh
+      </div>
+    `;
+  }
+
   renderStats(): TemplateResult[] {
     const statsList: TemplateResult[] = [];
 
     const power = parseInt(this._getBatteryPowerEntity.state, 10);
 
-    let action = 'No load';
+    let estimatedTimeAction = 'No load';
     let estimatedTime = 0;
-    let powerColourClass = '';
-    let powerSubtitle = html`<ha-icon icon="mdi:pause-box-outline"></ha-icon>No load`;
+
+    let timeUntilAction = 'No Load';
+    let timeUntil = Math.round(Date.now() / 1000);
 
     if (power > 0) {
-      powerColourClass = 'battery-power-out';
-      action = 'Time to discharge';
+      estimatedTimeAction = `Time left`;
       estimatedTime = this._getEstimatedTimeLeft;
-      powerSubtitle = html`<ha-icon icon="mdi:export"></ha-icon>Power Out`;
+      timeUntilAction = `Time @ ${this._getBatteryPowerReserve.state}%`;
+      timeUntil = this._getEstimatedTimeAtReserve;
     }
     if (power < 0) {
-      powerColourClass = 'battery-power-in';
-      action = 'Time to charge'
+      estimatedTimeAction = 'Time left'
       estimatedTime = this._getEstimatedChargeTime;
-      powerSubtitle = html`<ha-icon icon="mdi:import"></ha-icon>Power In`;
+      timeUntilAction = `Time @ 100%`;
+      timeUntil = this._getEstimatedTimeAtFull;
     }
 
     let t0 = html`0`;
@@ -190,39 +234,53 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     const timeLeft = html`
       <div class="stats-block">
         <span class="stats-value"> ${t0} </span>
-        <div class="stats-subtitle">${action}</div>
+        <div class="stats-subtitle">${estimatedTimeAction}</div>
       </div>
     `;
 
     statsList.push(timeLeft);
 
-    const displayAbsPower = (this.config.display_abs_power !== undefined) ? this.config.display_abs_power : DISPLAY_ABS_POWER;
+    const timeUntilDate = new Date(timeUntil * 1000)
 
-    const p = (displayAbsPower) ? Math.abs(power) : power;
+    let timeUntilTime = timeUntilDate.toLocaleString(
+        'en-GB',
+        {
+          hour: 'numeric',
+          minute: 'numeric',
+          hour12: false }
+    )
 
-    const powerUse = html`
-      <div 
-          class="stats-block" 
-          data-entity-id="${`sensor.${this._getSensorPrefix}battery_power`}"
-          id="gtpc-battery-detail-battery-power"
-      >
-        <span class="stats-value ${powerColourClass}">
-          ${p} 
-        </span>
-        Wh
-        <div class="stats-subtitle">${powerSubtitle}</div>
+    if(timeUntil > 86400) {
+      timeUntilTime = timeUntilDate.toLocaleString(
+          'en-GB',
+          {
+            day: 'numeric',
+            month: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: false }
+      );
+
+      timeUntilAction = `Date/${timeUntilAction}`
+    }
+
+    const timeUntilBlock = html`
+      <div class="stats-block">
+        <span class="stats-value">${timeUntilTime}</span>
+        <div class="stats-subtitle">${timeUntilAction}</div>
       </div>
     `;
 
-    statsList.push(powerUse);
+    statsList.push(timeUntilBlock);
 
     return statsList;
   }
 
-  renderName(): TemplateResult {
-    const c = parseFloat(this._getBatteryCapacityKwhEntity.state);
+  renderNameAndStatus(): TemplateResult {
 
-    return html` <div class="battery-name">${this.config.name || 'Battery'}: ${c} kWh</div> `;
+    const status = this._getBatteryStatus.toUpperCase();
+
+    return html` <div class="battery-name">${this.config.name || 'Battery'} | ${status}</div> `;
   }
 
   getBatteryIcon(): string {
@@ -284,7 +342,10 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return html`
       <ha-card>
         <div class="preview">
-          <div class="metadata">${this.renderName()} ${this.renderStatus()}</div>
+          <div class="metadata">
+            ${this.renderNameAndStatus()}
+            ${this.renderReserveAndCapacity()}
+          </div>
 
           <div class="stats-wrapper">
             <div class="stats">
@@ -297,6 +358,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
                 <span class="icon-info">
                   <span class="icon-title"> ${soc}% </span>
                   <span class="icon-subtitle"> ${socWh} Wh </span>
+                  ${this.renderPowerUsage()}
                 </span>
               </div>
             </div>
@@ -348,6 +410,10 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return this.hass.states[`sensor.${this._getSensorPrefix}battery_capacity_kwh`];
   }
 
+  private get _getBatteryPowerReserve(): HassEntity {
+    return this.hass.states[`number.${this._getSensorPrefix}battery_power_reserve`];
+  }
+
   private get _getBatteryStatus(): string {
     const power = parseInt(this._getBatteryPowerEntity.state, 10);
 
@@ -363,13 +429,24 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return status;
   }
 
+  private get _getReserveWatts(): number {
+    const capacity = parseFloat(this._getBatteryCapacityKwhEntity.state) * 1000;
+    const reserve = parseFloat(this._getBatteryPowerReserve.state) / 100;
+    return capacity * reserve;
+  }
+
   private get _getEstimatedTimeLeft(): number {
     let timeSecs = 0;
     const socWatts = parseFloat(this._getSocKwhEntity.state) * 1000;
+    const capacity = parseFloat(this._getBatteryCapacityKwhEntity.state) * 1000;
+    const reserve = parseFloat(this._getBatteryPowerReserve.state) / 100;
     const dischargePower = parseFloat(this._getDischargePowerEntity.state);
 
-    if (socWatts > 0 && dischargePower > 0) {
-      const diffP = socWatts / dischargePower;
+    const reserveWatts = capacity * reserve;
+    const socWattsLessReserve = socWatts - reserveWatts;
+
+    if (socWattsLessReserve > 0 && dischargePower > 0) {
+      const diffP = socWattsLessReserve / dischargePower;
       timeSecs = Math.floor(diffP * 3600);
     }
 
@@ -389,6 +466,16 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     }
 
     return timeSecs;
+  }
+
+  private get _getEstimatedTimeAtReserve(): number {
+    const timeNow = Math.round(Date.now() / 1000);
+    return timeNow + this._getEstimatedTimeLeft
+  }
+
+  private get _getEstimatedTimeAtFull(): number {
+    const timeNow = Math.round(Date.now() / 1000);
+    return timeNow + this._getEstimatedChargeTime
   }
 
   // https://lit.dev/docs/components/styles/
