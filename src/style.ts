@@ -139,6 +139,14 @@ export const styleCss = css`
     margin-top: 25px;
   }
 
+  .icon-subtitle-small {
+    display: block;
+    vertical-align: middle;
+    padding: 0 3px;
+    font-size: 20px;
+    margin-top: 10px;
+  }
+
   .battery-power-out {
     color: #db4437;
   }
