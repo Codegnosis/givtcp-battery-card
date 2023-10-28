@@ -250,7 +250,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
           hour12: false }
     )
 
-    if(timeUntil > 86400) {
+    if(estimatedTime > 86400) {
       timeUntilTime = timeUntilDate.toLocaleString(
           'en-GB',
           {
