@@ -1,6 +1,5 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=flat-square)](https://github.com/custom-components/hacs)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/Codegnosis/givtcp-battery-card?style=flat-square)
-
 [![Github All Releases](https://img.shields.io/github/downloads/Codegnosis/givtcp-battery-card/total.svg)]()
 ![Build](https://github.com/Codegnosis/givtcp-battery-card/actions/workflows/build.yml/badge.svg)
 
@@ -12,7 +11,9 @@ some basic stats in a single card:
 - SOC %
 - SOC wH
 - Status (Charge/Discharge/Idle)
+- Current usage (in/out)
 - Time left to Charge/Discharge
+- Estimated date/time of full charge/discharge to reserve
 
 ![Preview](./preview.png)
 
@@ -48,6 +49,7 @@ Edit your chosen dashboard and use the "Add Card" button to select the "GivTCP B
 | soc_threshold_low_colour       | array   | Optional     | RGB value for icon colour when SOC >= `soc_threshold_low`                         | `[219, 68, 55]` |
 | soc_threshold_very_low_colour  | array   | Optional     | RGB value for icon colour when SOC < `soc_threshold_low`                          | `[94, 0, 0]`    |
 | display_abs_power              | boolean | Optional     | Display the battery power usage as an absolute (unsigned integer) value           | `false`         |
+| display_kwh                    | boolean | OPtional     | Display power usage in kWh (default Wh)                                           | `false`         |
 
 ## Raw YAML example
 
@@ -79,6 +81,7 @@ soc_threshold_very_low_colour:
   - 0
   - 0
 display_abs_power: false
+display_kwh: false
 entity: sensor.givetcp_abc123_invertor_serial_number
 ```
 
