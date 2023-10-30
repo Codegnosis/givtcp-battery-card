@@ -11,6 +11,7 @@ import { HassEntity } from 'home-assistant-js-websocket';
 
 import {
   DISPLAY_ABS_POWER,
+  DISPLAY_KWH,
   SOC_THRESH_HIGH,
   SOC_THRESH_HIGH_COLOUR,
   SOC_THRESH_LOW,
@@ -144,24 +145,14 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return this.clientHeight > 0 ? Math.ceil(this.clientHeight / 50) : 3;
   }
 
-  renderStatus(): TemplateResult {
-    const status = this._getBatteryStatus.toUpperCase();
-
-    return html`
-      <div class="status">
-        <span class="status-text"> ${status} </span>
-      </div>
-    `;
-  }
-
   renderReserveAndCapacity(): TemplateResult {
     const reserve = this._getBatteryPowerReserve.state;
     const reserveWatts = Math.round(this._getReserveWatts);
-    const capacity = parseFloat(this._getBatteryCapacityKwhEntity.state);
+    const capacity = parseFloat(this._getBatteryCapacityKwhEntity.state) * 1000;
 
     return html`
       <div class="status">
-        <span class="status-text"> Capacity: ${capacity} kWh | Reserve: ${reserveWatts} Wh (${reserve}%) </span>
+        <span class="status-text"> Capacity: ${this.convertDisplayUnit(capacity)} ${this.getDisplayUnit()} | Reserve: ${this.convertDisplayUnit(reserveWatts)} ${this.getDisplayUnit()} (${reserve}%) </span>
       </div>
     `;
   }
@@ -190,9 +181,9 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       <div class="icon-subtitle-small">
         ${powerSubtitle}
         <span class="${powerColourClass}">
-          ${p} 
+          ${this.convertDisplayUnit(p)} 
         </span>
-        Wh
+        ${this.getDisplayUnit()}
       </div>
     `;
   }
@@ -240,33 +231,32 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
     statsList.push(timeLeft);
 
-    const timeUntilDate = new Date(timeUntil * 1000)
+    const timeUntilDate = new Date(timeUntil * 1000);
 
-    let timeUntilTime = timeUntilDate.toLocaleString(
+    const timeUntilTime = timeUntilDate.toLocaleString(
         'en-GB',
         {
           hour: 'numeric',
           minute: 'numeric',
           hour12: false }
-    )
+    );
+
+    let formattedUntil = timeUntilTime;
 
     if(estimatedTime > 86400) {
-      timeUntilTime = timeUntilDate.toLocaleString(
+      const dateUntil = timeUntilDate.toLocaleString(
           'en-GB',
           {
             day: 'numeric',
-            month: 'numeric',
-            hour: 'numeric',
-            minute: 'numeric',
-            hour12: false }
+            month: 'numeric'}
       );
 
-      timeUntilAction = `Date/${timeUntilAction}`
+      formattedUntil = `${dateUntil} ${timeUntilTime}`;
     }
 
     const timeUntilBlock = html`
       <div class="stats-block">
-        <span class="stats-value">${timeUntilTime}</span>
+        <span class="stats-value">${formattedUntil}</span>
         <div class="stats-subtitle">${timeUntilAction}</div>
       </div>
     `;
@@ -327,6 +317,24 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     }
   }
 
+  getDisplayUnit(): string {
+    const displayKWh = (this.config.display_kwh !== undefined) ? this.config.display_kwh : DISPLAY_KWH;
+    if(displayKWh) {
+      return "kWh";
+    }
+    return "Wh";
+  }
+
+  convertDisplayUnit(num: number): number {
+    const displayKWh = (this.config.display_kwh !== undefined) ? this.config.display_kwh : DISPLAY_KWH;
+
+    if(num === 0 || !displayKWh) {
+      return num;
+    }
+
+    return num / 1000;
+  }
+
   // https://lit.dev/docs/components/rendering/
   protected render(): TemplateResult | void {
     if (!this.config?.entity) {
@@ -354,10 +362,10 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
                   data-entity-id="${`sensor.${this._getSensorPrefix}soc`}"
                   id="gtpc-battery-detail-soc"
               >
-                <ha-icon icon="${batteryIcon}" style="color:rgb(${batteryIconColour});--mdc-icon-size: 120px;"></ha-icon>
+                <ha-icon icon="${batteryIcon}" style="color:rgb(${batteryIconColour});--mdc-icon-size: 110px;"></ha-icon>
                 <span class="icon-info">
                   <span class="icon-title"> ${soc}% </span>
-                  <span class="icon-subtitle"> ${socWh} Wh </span>
+                  <span class="icon-subtitle"> ${this.convertDisplayUnit(socWh)} ${this.getDisplayUnit()} </span>
                   ${this.renderPowerUsage()}
                 </span>
               </div>

@@ -109,7 +109,7 @@ export const styleCss = css`
   }
 
   .stats-value {
-    font-size: 20px;
+    font-size: 18px;
     color: var(--vc-primary-text-color);
   }
 
@@ -127,7 +127,7 @@ export const styleCss = css`
     display: block;
     vertical-align: middle;
     padding: 0 3px;
-    font-size: 50px;
+    font-size: 45px;
     margin: 3px;
   }
 
@@ -135,7 +135,7 @@ export const styleCss = css`
     display: block;
     vertical-align: middle;
     padding: 0 3px;
-    font-size: 30px;
+    font-size: 22px;
     margin-top: 25px;
   }
 
@@ -143,7 +143,7 @@ export const styleCss = css`
     display: block;
     vertical-align: middle;
     padding: 0 3px;
-    font-size: 20px;
+    font-size: 18px;
     margin-top: 10px;
   }
 

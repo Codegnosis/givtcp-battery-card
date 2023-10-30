@@ -130,6 +130,14 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
                 selector: {
                     boolean: {}
                 }
+            },
+            {
+                name: 'display_kwh',
+                label: 'Display power usage in kWh (default Wh)',
+                default: defaults.display_kwh,
+                selector: {
+                    boolean: {}
+                }
             }
         ];
     }
