@@ -10,7 +10,9 @@ import {
     SOC_THRESH_V_HIGH_COLOUR,
     SOC_THRESH_V_LOW_COLOUR,
     DISPLAY_ABS_POWER,
-    DISPLAY_KWH,
+    DISPLAY_TYPE,
+    DISPLAY_DP,
+    DISPLAY_TYPE_OPTIONS,
 } from "./constants";
 
 export class ConfigUtils {
@@ -28,7 +30,30 @@ export class ConfigUtils {
             soc_threshold_low_colour: SOC_THRESH_LOW_COLOUR,
             soc_threshold_very_low_colour: SOC_THRESH_V_LOW_COLOUR,
             display_abs_power: DISPLAY_ABS_POWER,
-            display_kwh: DISPLAY_KWH,
+            display_type: DISPLAY_TYPE,
+            display_dp: DISPLAY_DP,
         };
+    }
+
+    static migrateConfig(config: LovelaceCardConfig, makeCopy: boolean): LovelaceCardConfig {
+        const newConfig = makeCopy ? { ...config } : config;
+        const mappings = {
+            display_kwh: {
+                newKey: 'display_type',
+                newVal: DISPLAY_TYPE_OPTIONS.DYNAMIC,
+            },
+        };
+
+        for (const [oldKey, newConf] of Object.entries(mappings)) {
+            if (newConfig[oldKey]) {
+                newConfig[newConf.newKey] = newConfig[oldKey];
+
+                if(newConf.newKey !== undefined) {
+                    newConfig[newConf.newKey] = newConf.newVal;
+                }
+                delete newConfig[oldKey];
+            }
+        }
+        return newConfig;
     }
 }

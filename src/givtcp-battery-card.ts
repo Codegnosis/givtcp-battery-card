@@ -11,7 +11,9 @@ import { HassEntity } from 'home-assistant-js-websocket';
 
 import {
   DISPLAY_ABS_POWER,
-  DISPLAY_KWH,
+  DISPLAY_DP,
+  DISPLAY_TYPE,
+  DISPLAY_TYPE_OPTIONS,
   SOC_THRESH_HIGH,
   SOC_THRESH_HIGH_COLOUR,
   SOC_THRESH_LOW,
@@ -152,7 +154,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
     return html`
       <div class="status">
-        <span class="status-text"> Capacity: ${this.convertDisplayUnit(capacity)} ${this.getDisplayUnit()} | Reserve: ${this.convertDisplayUnit(reserveWatts)} ${this.getDisplayUnit()} (${reserve}%) </span>
+        <span class="status-text"> Capacity: ${this.convertDisplay(capacity)} | Reserve: ${this.convertDisplay(reserveWatts)} (${reserve}%) </span>
       </div>
     `;
   }
@@ -183,7 +185,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
         <span class="${powerColourClass}">
           ${this.convertDisplayUnit(p)} 
         </span>
-        ${this.getDisplayUnit()}
+        ${this.getDisplayUnit(p)}
       </div>
     `;
   }
@@ -200,13 +202,13 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     let timeUntil = Math.round(Date.now() / 1000);
 
     if (power > 0) {
-      estimatedTimeAction = `Time left`;
+      estimatedTimeAction = `Until ${this._getBatteryPowerReserve.state}%`;
       estimatedTime = this._getEstimatedTimeLeft;
       timeUntilAction = `Time @ ${this._getBatteryPowerReserve.state}%`;
       timeUntil = this._getEstimatedTimeAtReserve;
     }
     if (power < 0) {
-      estimatedTimeAction = 'Time left'
+      estimatedTimeAction = 'Until 100%'
       estimatedTime = this._getEstimatedChargeTime;
       timeUntilAction = `Time @ 100%`;
       timeUntil = this._getEstimatedTimeAtFull;
@@ -317,22 +319,76 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     }
   }
 
-  getDisplayUnit(): string {
-    const displayKWh = (this.config.display_kwh !== undefined) ? this.config.display_kwh : DISPLAY_KWH;
-    if(displayKWh) {
-      return "kWh";
+  convertDisplay(num: number): string {
+    return `${this.convertDisplayUnit(num)} ${this.getDisplayUnit(num)}`;
+  }
+
+  getDisplayUnit(num: number): string {
+    const displayType = (this.config.display_type !== undefined) ? this.config.display_type : DISPLAY_TYPE;
+
+    switch(displayType) {
+      case DISPLAY_TYPE_OPTIONS.WH:
+      default:
+        return "Wh";
+      case DISPLAY_TYPE_OPTIONS.KWH:
+        return "kWh";
+      case DISPLAY_TYPE_OPTIONS.DYNAMIC:
+        if(num !== 0) {
+          if(Math.abs(num) >= 1000) {
+            return "kWh";
+          } else {
+            return "Wh";
+          }
+        } else {
+          return "Wh";
+        }
     }
-    return "Wh";
   }
 
   convertDisplayUnit(num: number): number {
-    const displayKWh = (this.config.display_kwh !== undefined) ? this.config.display_kwh : DISPLAY_KWH;
+    const displayType = (this.config.display_type !== undefined) ? this.config.display_type : DISPLAY_TYPE;
 
-    if(num === 0 || !displayKWh) {
-      return num;
+    switch(displayType) {
+      case DISPLAY_TYPE_OPTIONS.WH:
+      default:
+        return num;
+      case DISPLAY_TYPE_OPTIONS.KWH:
+        if(num !== 0) {
+          return this.convertKwhWithDp(num);
+        }
+        return 0;
+      case DISPLAY_TYPE_OPTIONS.DYNAMIC:
+        if(num !== 0) {
+          if(Math.abs(num) >= 1000) {
+            return this.convertKwhWithDp(num);
+          } else {
+            return num;
+          }
+        } else {
+          return num;
+        }
+    }
+  }
+
+  convertKwhWithDp(num: number): number {
+    let dp = parseInt((this.config.display_dp !== undefined) ? this.config.display_dp : DISPLAY_DP, 10);
+
+    if(dp > 3) {
+      dp = 3;
     }
 
-    return num / 1000;
+    if(dp < 1) {
+      dp = 1;
+    }
+
+    const mult = 10 ** dp;
+
+    if(num !== 0) {
+      const numKwh = num / 1000;
+      return Math.round((numKwh + Number.EPSILON) * mult) / mult;
+    }
+
+    return 0;
   }
 
   // https://lit.dev/docs/components/rendering/
@@ -365,7 +421,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
                 <ha-icon icon="${batteryIcon}" style="color:rgb(${batteryIconColour});--mdc-icon-size: 110px;"></ha-icon>
                 <span class="icon-info">
                   <span class="icon-title"> ${soc}% </span>
-                  <span class="icon-subtitle"> ${this.convertDisplayUnit(socWh)} ${this.getDisplayUnit()} </span>
+                  <span class="icon-subtitle"> ${this.convertDisplay(socWh)} </span>
                   ${this.renderPowerUsage()}
                 </span>
               </div>

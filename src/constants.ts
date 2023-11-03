@@ -9,4 +9,12 @@ export const SOC_THRESH_LOW_COLOUR = [219, 68, 55]; //#db4437
 export const SOC_THRESH_V_LOW_COLOUR = [94, 0, 0]; //#5e0000
 
 export const DISPLAY_ABS_POWER = false;
-export const DISPLAY_KWH = false;
+
+export enum DISPLAY_TYPE_OPTIONS {
+    WH,
+    KWH,
+    DYNAMIC,
+}
+
+export const DISPLAY_TYPE = DISPLAY_TYPE_OPTIONS.DYNAMIC;
+export const DISPLAY_DP = 3;

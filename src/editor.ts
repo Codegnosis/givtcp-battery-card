@@ -10,7 +10,7 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
     @state() private _config!: LovelaceCardConfig;
 
     public setConfig(config: LovelaceCardConfig): void {
-        this._config = config;
+        this._config = ConfigUtils.migrateConfig(config, true);
     }
 
     get _getInvertorList(): string[] {
@@ -132,11 +132,25 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
                 }
             },
             {
-                name: 'display_kwh',
-                label: 'Display power usage in kWh (default Wh)',
-                default: defaults.display_kwh,
+                name: 'display_type',
+                label: 'Display type (0: Wh | 1: kWh | 2: Dynamic)',
+                default: defaults.display_type,
                 selector: {
-                    boolean: {}
+                    number: {
+                        min: 0,
+                        max: 2
+                    }
+                }
+            },
+            {
+                name: 'display_dp',
+                label: 'Display number decimal places',
+                default: defaults.display_dp,
+                selector: {
+                    number: {
+                        min: 1,
+                        max: 3
+                    }
                 }
             }
         ];
