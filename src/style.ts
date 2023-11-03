@@ -28,6 +28,7 @@ export const styleCss = css`
     background: var(--vc-background);
     position: relative;
     text-align: center;
+    padding-bottom: 10px;
 
     &.not-available {
       filter: grayscale(1);
@@ -81,8 +82,12 @@ export const styleCss = css`
   .stats-wrapper {
     display: flex;
     flex-direction: row;
-    justify-content: space-evenly;
     color: var(--vc-secondary-text-color);
+  }
+  
+  .stats-col {
+    flex: 1 33%;
+    margin-top: auto;
   }
 
   .stats {
@@ -90,22 +95,12 @@ export const styleCss = css`
     flex-direction: column;
     justify-content: space-evenly;
     color: var(--vc-secondary-text-color);
-
-    &:last-of-type {
-      border-right: 0px;
-    }
   }
 
   .stats-block {
     cursor: pointer;
     margin: var(--vc-spacing) 0px;
     text-align: center;
-    //border-top: 1px solid var(--vc-divider-color);
-    flex-grow: 1;
-
-    &:last-of-type {
-      border-right: 0px;
-    }
   }
 
   .stats-value {
