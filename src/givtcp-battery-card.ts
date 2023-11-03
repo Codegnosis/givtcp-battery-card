@@ -68,8 +68,14 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       const battPower = this.shadowRoot.getElementById('gtpc-battery-detail-battery-power');
       this._attacheEventListener(battPower)
 
-      const soc = this.shadowRoot.getElementById('gtpc-battery-detail-soc');
-      this._attacheEventListener(soc)
+      const socIcon = this.shadowRoot.getElementById('gtpc-battery-detail-soc-icon');
+      this._attacheEventListener(socIcon)
+
+      const socText = this.shadowRoot.getElementById('gtpc-battery-detail-soc-text');
+      this._attacheEventListener(socText)
+
+      const socKwhText = this.shadowRoot.getElementById('gtpc-battery-detail-soc-kwh-text');
+      this._attacheEventListener(socKwhText)
     }
   }
 
@@ -180,7 +186,11 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     }
 
     return html`
-      <div class="icon-subtitle-small">
+      <div 
+          class="icon-subtitle-small"
+          id="gtpc-battery-detail-battery-power"
+          data-entity-id="${`sensor.${this._getSensorPrefix}battery_power`}"
+      >
         ${powerSubtitle}
         <span class="${powerColourClass}">
           ${this.convertDisplayUnit(p)} 
@@ -195,28 +205,31 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
     const power = parseInt(this._getBatteryPowerEntity.state, 10);
 
-    let estimatedTimeAction = 'No load';
+    const estIcon = html`<ha-icon icon="mdi:timer-sand" style="--mdc-icon-size: 17px;"></ha-icon>`
+    const timeIcon = html`<ha-icon icon="mdi:clock-outline" style="--mdc-icon-size: 17px;"></ha-icon>`
+
+    let estimatedTimeAction = html`${estIcon} No load`;
     let estimatedTime = 0;
 
-    let timeUntilAction = 'No Load';
+    let timeUntilAction = html`${timeIcon} No Load`;
     let timeUntil = Math.round(Date.now() / 1000);
 
     if (power > 0) {
-      estimatedTimeAction = `Until ${this._getBatteryPowerReserve.state}%`;
+      estimatedTimeAction = html`${estIcon} until ${this._getBatteryPowerReserve.state}%`;
       estimatedTime = this._getEstimatedTimeLeft;
-      timeUntilAction = `Time @ ${this._getBatteryPowerReserve.state}%`;
+      timeUntilAction = html`${timeIcon} at ${this._getBatteryPowerReserve.state}%`;
       timeUntil = this._getEstimatedTimeAtReserve;
     }
     if (power < 0) {
-      estimatedTimeAction = 'Until 100%'
+      estimatedTimeAction = html`${estIcon} until 100%`
       estimatedTime = this._getEstimatedChargeTime;
-      timeUntilAction = `Time @ 100%`;
+      timeUntilAction = html`${timeIcon} at 100%`;
       timeUntil = this._getEstimatedTimeAtFull;
     }
 
-    let t0 = html`0`;
+    let t0 = html`<ha-icon icon="mdi:sleep"></ha-icon>`;
 
-    if(estimatedTime > 0) {
+    if(power !== 0) {
       t0 = html`
         <givtcp-battery-card-countdown 
             secs=${estimatedTime}
@@ -233,27 +246,33 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
     statsList.push(timeLeft);
 
-    const timeUntilDate = new Date(timeUntil * 1000);
+    let formattedUntil = html`
+      <ha-icon icon="mdi:sleep"></ha-icon>
+    `
 
-    const timeUntilTime = timeUntilDate.toLocaleString(
-        'en-GB',
-        {
-          hour: 'numeric',
-          minute: 'numeric',
-          hour12: false }
-    );
+    if(power !== 0) {
+      const timeUntilDate = new Date(timeUntil * 1000);
 
-    let formattedUntil = timeUntilTime;
-
-    if(estimatedTime > 86400) {
-      const dateUntil = timeUntilDate.toLocaleString(
+      const timeUntilTime = timeUntilDate.toLocaleString(
           'en-GB',
           {
-            day: 'numeric',
-            month: 'numeric'}
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: false }
       );
 
-      formattedUntil = `${dateUntil} ${timeUntilTime}`;
+      formattedUntil = html`${timeUntilTime}`;
+
+      if(estimatedTime > 86400) {
+        const dateUntil = timeUntilDate.toLocaleString(
+            'en-GB',
+            {
+              day: 'numeric',
+              month: 'numeric'}
+        );
+
+        formattedUntil = html`${dateUntil} ${timeUntilTime}`;
+      }
     }
 
     const timeUntilBlock = html`
@@ -412,22 +431,42 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
           </div>
 
           <div class="stats-wrapper">
-            <div class="stats">
-              <div 
-                  class="stats-block" 
-                  data-entity-id="${`sensor.${this._getSensorPrefix}soc`}"
-                  id="gtpc-battery-detail-soc"
-              >
-                <ha-icon icon="${batteryIcon}" style="color:rgb(${batteryIconColour});--mdc-icon-size: 110px;"></ha-icon>
-                <span class="icon-info">
-                  <span class="icon-title"> ${soc}% </span>
-                  <span class="icon-subtitle"> ${this.convertDisplay(socWh)} </span>
-                  ${this.renderPowerUsage()}
+            <div
+                data-entity-id="${`sensor.${this._getSensorPrefix}soc`}"
+                id="gtpc-battery-detail-soc-icon"
+                class="stats-col"
+            >
+              <ha-icon 
+                  icon="${batteryIcon}" 
+                  style="color:rgb(${batteryIconColour});--mdc-icon-size: 110px;"
+              ></ha-icon>
+            </div>
+            
+            <div class="stats-col">
+              <span class="icon-info">
+                <span 
+                    class="icon-title"
+                    data-entity-id="${`sensor.${this._getSensorPrefix}soc`}"
+                    id="gtpc-battery-detail-soc-text"
+                > 
+                  ${soc}% 
                 </span>
-              </div>
+                <span 
+                    class="icon-subtitle"
+                    data-entity-id="${`sensor.${this._getSensorPrefix}soc_kwh`}"
+                    id="gtpc-battery-detail-soc-kwh-text"
+                > 
+                  ${this.convertDisplay(socWh)} 
+                </span>
+                  ${this.renderPowerUsage()}
+              </span>
             </div>
 
-            <div class="stats">${this.renderStats()}</div>
+            <div class="stats-col">
+              <div class="stats">
+                ${this.renderStats()}
+              </div>
+            </div>
           </div>
         </div>
       </ha-card>
