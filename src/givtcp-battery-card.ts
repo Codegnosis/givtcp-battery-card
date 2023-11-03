@@ -195,7 +195,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
         <span class="${powerColourClass}">
           ${this.convertDisplayUnit(p)} 
         </span>
-        ${this.getDisplayUnit(p)}
+        ${this.getDisplayUnit(p, true)}
       </div>
     `;
   }
@@ -342,24 +342,25 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return `${this.convertDisplayUnit(num)} ${this.getDisplayUnit(num)}`;
   }
 
-  getDisplayUnit(num: number): string {
+  getDisplayUnit(num: number, isPower = false): string {
     const displayType = (this.config.display_type !== undefined) ? this.config.display_type : DISPLAY_TYPE;
+    const suffix = isPower ? '' : 'h';
 
     switch(displayType) {
       case DISPLAY_TYPE_OPTIONS.WH:
       default:
-        return "Wh";
+        return `W${suffix}`;
       case DISPLAY_TYPE_OPTIONS.KWH:
-        return "kWh";
+        return `kW${suffix}`;
       case DISPLAY_TYPE_OPTIONS.DYNAMIC:
         if(num !== 0) {
           if(Math.abs(num) >= 1000) {
-            return "kWh";
+            return `kW${suffix}`;
           } else {
-            return "Wh";
+            return `W${suffix}`;
           }
         } else {
-          return "Wh";
+          return `W${suffix}`;
         }
     }
   }
