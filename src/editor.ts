@@ -152,7 +152,31 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
                         max: 3
                     }
                 }
-            }
+            },
+            {
+                name: 'icon_status_charging',
+                label: 'Status Icon: Charging',
+                default: defaults.icon_status_charging,
+                selector: {
+                    icon:{},
+                }
+            },
+            {
+                name: 'icon_status_discharging',
+                label: 'Status Icon: Discharging',
+                default: defaults.icon_status_discharging,
+                selector: {
+                    icon:{},
+                }
+            },
+            {
+                name: 'icon_status_idle',
+                label: 'Status Icon: Idle',
+                default: defaults.icon_status_idle,
+                selector: {
+                    icon:{},
+                }
+            },
         ];
     }
 

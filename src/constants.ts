@@ -18,3 +18,7 @@ export enum DISPLAY_TYPE_OPTIONS {
 
 export const DISPLAY_TYPE = DISPLAY_TYPE_OPTIONS.DYNAMIC;
 export const DISPLAY_DP = 3;
+
+export const ICON_STATUS_IDLE = 'mdi:sleep';
+export const ICON_STATUS_CHARGING = 'mdi:lightning-bolt';
+export const ICON_STATUS_DISCHARGING = 'mdi:home-battery';

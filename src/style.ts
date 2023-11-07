@@ -82,11 +82,12 @@ export const styleCss = css`
   .stats-wrapper {
     display: flex;
     flex-direction: row;
+    justify-content: center;
     color: var(--vc-secondary-text-color);
   }
   
   .stats-col {
-    flex: 1 33%;
+    flex: 33%;
     margin-top: auto;
   }
 
@@ -106,6 +107,12 @@ export const styleCss = css`
   .stats-value {
     font-size: 18px;
     color: var(--vc-primary-text-color);
+  }
+  
+  .battery-icon-wrapper {
+    display: flex;
+    flex-direction: row;
+    vertical-align: middle;
   }
 
   ha-icon {
