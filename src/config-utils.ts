@@ -13,6 +13,9 @@ import {
     DISPLAY_TYPE,
     DISPLAY_DP,
     DISPLAY_TYPE_OPTIONS,
+    ICON_STATUS_IDLE,
+    ICON_STATUS_CHARGING,
+    ICON_STATUS_DISCHARGING,
 } from "./constants";
 
 export class ConfigUtils {
@@ -32,6 +35,9 @@ export class ConfigUtils {
             display_abs_power: DISPLAY_ABS_POWER,
             display_type: DISPLAY_TYPE,
             display_dp: DISPLAY_DP,
+            icon_status_idle: ICON_STATUS_IDLE,
+            icon_status_charging: ICON_STATUS_CHARGING,
+            icon_status_discharging: ICON_STATUS_DISCHARGING,
         };
     }
 

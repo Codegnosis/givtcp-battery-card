@@ -13,7 +13,7 @@ import {
   DISPLAY_ABS_POWER,
   DISPLAY_DP,
   DISPLAY_TYPE,
-  DISPLAY_TYPE_OPTIONS,
+  DISPLAY_TYPE_OPTIONS, ICON_STATUS_CHARGING, ICON_STATUS_DISCHARGING, ICON_STATUS_IDLE,
   SOC_THRESH_HIGH,
   SOC_THRESH_HIGH_COLOUR,
   SOC_THRESH_LOW,
@@ -169,7 +169,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
     const power = parseInt(this._getBatteryPowerEntity.state, 10);
     let powerColourClass = '';
-    let powerSubtitle = html`<ha-icon icon="mdi:pause-box-outline"></ha-icon>`;
+    let powerSubtitle = html``;
 
     const displayAbsPower = (this.config.display_abs_power !== undefined) ? this.config.display_abs_power : DISPLAY_ABS_POWER;
 
@@ -227,7 +227,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       timeUntil = this._getEstimatedTimeAtFull;
     }
 
-    let t0 = html`<ha-icon icon="mdi:sleep"></ha-icon>`;
+    let t0 = html`--:--:--`;
 
     if(power !== 0) {
       t0 = html`
@@ -246,9 +246,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
     statsList.push(timeLeft);
 
-    let formattedUntil = html`
-      <ha-icon icon="mdi:sleep"></ha-icon>
-    `
+    let formattedUntil = '--:--'
 
     if(power !== 0) {
       const timeUntilDate = new Date(timeUntil * 1000);
@@ -261,7 +259,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
             hour12: false }
       );
 
-      formattedUntil = html`${timeUntilTime}`;
+      formattedUntil = `${timeUntilTime}`;
 
       if(estimatedTime > 86400) {
         const dateUntil = timeUntilDate.toLocaleString(
@@ -271,7 +269,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
               month: 'numeric'}
         );
 
-        formattedUntil = html`${dateUntil} ${timeUntilTime}`;
+        formattedUntil = `${dateUntil} ${timeUntilTime}`;
       }
     }
 
@@ -296,7 +294,8 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
   getBatteryIcon(): string {
     const socInt = parseInt(this._getSocEntity.state, 10);
-    const prefix = this._getBatteryStatus === 'charging' ? '-charging' : '';
+    // const prefix = this._getBatteryStatus === 'charging' ? '-charging' : '';
+    const prefix = '';
 
     if (socInt === 100) {
       return 'mdi:battery';
@@ -309,6 +308,24 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     const suffix = Math.floor(socInt / 10) * 10
 
     return `mdi:battery${prefix}-${suffix}`;
+  }
+
+  getBatteryStatusIcon(): string {
+
+    const iconCharging = (this.config?.icon_status_charging) ? this.config.icon_status_charging : ICON_STATUS_CHARGING;
+    const iconDisharging = (this.config?.icon_status_discharging) ? this.config.icon_status_discharging : ICON_STATUS_DISCHARGING;
+    const iconIdle = (this.config?.icon_status_idle) ? this.config.icon_status_idle : ICON_STATUS_IDLE;
+
+    switch (this._getBatteryStatus) {
+      default:
+        return '';
+      case 'charging':
+        return iconCharging;
+      case 'discharging':
+        return iconDisharging;
+      case 'idle':
+        return iconIdle;
+    }
   }
 
   getBatteryColour(): string {
@@ -418,6 +435,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     }
 
     const batteryIcon = this.getBatteryIcon();
+    const batteryStatusIcon = this.getBatteryStatusIcon();
     const batteryIconColour = this.getBatteryColour();
 
     const soc = parseInt(this._getSocEntity.state, 10);
@@ -437,10 +455,23 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
                 id="gtpc-battery-detail-soc-icon"
                 class="stats-col"
             >
-              <ha-icon 
-                  icon="${batteryIcon}" 
-                  style="color:rgb(${batteryIconColour});--mdc-icon-size: 110px;"
-              ></ha-icon>
+              <div class="battery-icon-wrapper">
+                <div style="margin: auto; width: 15px;">
+                </div>
+                <div style="margin: auto;">
+                  <ha-icon
+                      icon="${batteryStatusIcon}"
+                      style="--mdc-icon-size: 45px;"
+                  ></ha-icon>
+                </div>
+                <div style="margin: auto;">
+                  <ha-icon
+                      icon="${batteryIcon}"
+                      style="color:rgb(${batteryIconColour});--mdc-icon-size: 100px;"
+                  ></ha-icon>
+                </div>
+              </div>
+              
             </div>
             
             <div class="stats-col">
