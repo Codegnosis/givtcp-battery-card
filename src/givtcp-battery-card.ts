@@ -31,6 +31,7 @@ import { styleCss } from './style';
 
 import { version } from '../package.json';
 import {ConfigUtils} from "./config-utils";
+import {GivTcpBatteryStats} from "./types";
 
 // This puts your card into the UI card picker dialog
 (window as any).customCards = (window as any).customCards || [];
@@ -62,6 +63,8 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
   @property() hass!: HomeAssistant;
 
   @state() private config!: LovelaceCardConfig;
+
+  private calculatedStates!: GivTcpBatteryStats;
 
   firstUpdated() {
     if(this?.shadowRoot) {
@@ -153,34 +156,230 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return this.clientHeight > 0 ? Math.ceil(this.clientHeight / 50) : 3;
   }
 
-  renderReserveAndCapacity(): TemplateResult {
-    const reserve = this._getBatteryPowerReserve.state;
-    const reserveWatts = Math.round(this._getReserveWatts);
-    const capacity = parseFloat(this._getBatteryCapacityKwhEntity.state) * 1000;
+  setRawValues(): GivTcpBatteryStats {
+    const rawSocPercentEntity = this._getSocEntity
+    const rawBatteryPowerEntity = this._getBatteryPowerEntity
+    const rawSocEnergyEntity = this._getSocKwhEntity
+    const rawDischargePowerEntity = this._getDischargePowerEntity
+    const rawChargePowerEntity = this._getChargePowerEntity
+    const rawBatteryCapacityEntity = this._getBatteryCapacityKwhEntity
+    const rawBatteryPowerReserveEntity = this._getBatteryPowerReserve
 
+    const socPercent = {
+      rawState: rawSocPercentEntity.state,
+      uom: rawSocPercentEntity.attributes?.unit_of_measurement,
+      value: 0,
+      display: 0,
+      displayStr: '',
+    }
+
+    const batteryPower = {
+      rawState: rawBatteryPowerEntity.state,
+      uom: rawBatteryPowerEntity.attributes?.unit_of_measurement,
+      w: 0,
+      kW: 0.0,
+      display: 0,
+      displayStr: '',
+      displayUnit: '',
+    }
+
+    const socEnergy = {
+      rawState: rawSocEnergyEntity.state,
+      uom: rawSocEnergyEntity.attributes?.unit_of_measurement,
+      Wh: 0,
+      kWh: 0.0,
+      display: 0,
+      displayStr: '',
+    }
+
+    const dischargePower = {
+      rawState: rawDischargePowerEntity.state,
+      uom: rawDischargePowerEntity.attributes?.unit_of_measurement,
+      w: 0,
+      kW: 0.0,
+      display: 0,
+      displayStr: '',
+    }
+
+    const chargePower = {
+      rawState: rawChargePowerEntity.state,
+      uom: rawChargePowerEntity.attributes?.unit_of_measurement,
+      w: 0,
+      kW: 0.0,
+      display: 0,
+      displayStr: '',
+    }
+
+    const batteryCapacity = {
+      rawState: rawBatteryCapacityEntity.state,
+      uom: rawBatteryCapacityEntity.attributes?.unit_of_measurement,
+      Wh: 0,
+      kWh: 0.0,
+      display: 0,
+      displayStr: '',
+    }
+
+    const batteryPowerReservePercent = {
+      rawState: rawBatteryPowerReserveEntity.state,
+      uom: rawBatteryPowerReserveEntity.attributes?.unit_of_measurement,
+      value: 0,
+      display: 0,
+      displayStr: '',
+    }
+
+    const batteryPowerReserveEnergy = {
+      Wh: 0,
+      kWh: 0.0,
+      display: 0,
+      displayStr: '',
+    }
+
+    return {
+      socPercent,
+      batteryPower,
+      socEnergy,
+      dischargePower,
+      chargePower,
+      batteryCapacity,
+      batteryPowerReservePercent,
+      batteryPowerReserveEnergy,
+    }
+  }
+
+  calculateStats(): void {
+
+    const states = this.setRawValues();
+    const displayType = (this.config.display_type !== undefined) ? this.config.display_type : DISPLAY_TYPE;
+    const displayAbsPower = (this.config.display_abs_power !== undefined) ? this.config.display_abs_power : DISPLAY_ABS_POWER;
+    let dp = parseInt((this.config.display_dp !== undefined) ? this.config.display_dp : DISPLAY_DP, 10);
+
+    if(dp > 3) {
+      dp = 3;
+    }
+
+    if(dp < 1) {
+      dp = 1;
+    }
+
+    states.socPercent.value = parseInt(states.socPercent.rawState, 10);
+    states.socPercent.display = parseInt(states.socPercent.rawState, 10);
+    states.socPercent.displayStr = `${parseInt(states.socPercent.rawState, 10)}%`;
+
+    const batteryPowerReservePercent = parseInt(states.batteryPowerReservePercent.rawState, 10);
+    states.batteryPowerReservePercent.value = batteryPowerReservePercent;
+    states.batteryPowerReservePercent.display = batteryPowerReservePercent;
+    states.batteryPowerReservePercent.displayStr = `${batteryPowerReservePercent}%`;
+
+    const batteryCapacityKwh = parseFloat(states.batteryCapacity.rawState);
+    const batteryCapacityWh = batteryCapacityKwh * 1000;
+    states.batteryCapacity.kWh = batteryCapacityKwh;
+    states.batteryCapacity.Wh = batteryCapacityWh;
+
+    const batteryPowerReserveEnergyWh = Math.round(batteryCapacityWh * (batteryPowerReservePercent / 100))
+    const batteryPowerReserveEnergyKWh = this.convertToKillo(batteryPowerReserveEnergyWh, 3);
+    states.batteryPowerReserveEnergy.Wh = batteryPowerReserveEnergyWh;
+    states.batteryPowerReserveEnergy.kWh = batteryPowerReserveEnergyKWh;
+
+    const batteryPowerRaw = (states.batteryPower.uom === "W") ? parseInt(states.batteryPower.rawState, 10) : parseFloat(states.batteryPower.rawState);
+    const batteryPowerW = (states.batteryPower.uom === "W") ? batteryPowerRaw : batteryPowerRaw * 1000;
+    const batteryPowerKW = (states.batteryPower.uom === "W") ? this.convertToKillo(batteryPowerRaw, 3) : batteryPowerRaw;
+    states.batteryPower.w = batteryPowerW;
+    states.batteryPower.kW = batteryPowerKW;
+
+    const chargePowerRaw = (states.chargePower.uom === "W") ? parseInt(states.chargePower.rawState, 10) : parseFloat(states.chargePower.rawState);
+    const chargePowerW = (states.chargePower.uom === "W") ? chargePowerRaw : chargePowerRaw * 1000;
+    const chargePowerKW = (states.chargePower.uom === "W") ? this.convertToKillo(chargePowerRaw, 3) : chargePowerRaw;
+    states.chargePower.w = chargePowerW;
+    states.chargePower.kW = chargePowerKW;
+
+    const dischargePowerRaw = (states.dischargePower.uom === "W") ? parseInt(states.dischargePower.rawState, 10) : parseFloat(states.dischargePower.rawState);
+    const dischargePowerW = (states.dischargePower.uom === "W") ? dischargePowerRaw : dischargePowerRaw * 1000;
+    const dischargePowerKW = (states.dischargePower.uom === "W") ? this.convertToKillo(dischargePowerRaw, 3) : dischargePowerRaw;
+    states.dischargePower.w = dischargePowerW;
+    states.dischargePower.kW = dischargePowerKW;
+
+    const socEnergyRaw = (states.socEnergy.uom === "Wh") ? parseInt(states.socEnergy.rawState, 10) : parseFloat(states.socEnergy.rawState);
+    const socEnergyWh = (states.socEnergy.uom === "Wh") ? socEnergyRaw : socEnergyRaw * 1000;
+    const socEnergyKWh = (states.socEnergy.uom === "Wh") ? this.convertToKillo(socEnergyRaw, 3) : socEnergyRaw;
+    states.socEnergy.Wh = socEnergyWh;
+    states.socEnergy.kWh = socEnergyKWh;
+
+    // format displays
+    switch(displayType) {
+      case DISPLAY_TYPE_OPTIONS.WH:
+      default:
+        states.batteryCapacity.display = batteryCapacityWh;
+        states.batteryCapacity.displayStr = `${batteryCapacityWh} Wh`;
+        states.batteryPower.display = (displayAbsPower) ? Math.abs(batteryPowerW) : batteryPowerW;
+        states.batteryPower.displayStr = `${(displayAbsPower) ? Math.abs(batteryPowerW) : batteryPowerW} W`;
+        states.chargePower.display = chargePowerW;
+        states.chargePower.displayStr = `${chargePowerW} W`;
+        states.dischargePower.display = dischargePowerW;
+        states.dischargePower.displayStr = `${dischargePowerW} W`;
+        states.socEnergy.display = socEnergyWh;
+        states.socEnergy.displayStr = `${socEnergyWh} Wh`;
+        states.batteryPowerReserveEnergy.display = batteryPowerReserveEnergyWh;
+        states.batteryPowerReserveEnergy.displayStr = `${batteryPowerReserveEnergyWh} Wh`;
+        states.batteryPower.displayUnit = 'W';
+        break;
+      case DISPLAY_TYPE_OPTIONS.KWH:
+        states.batteryCapacity.display = batteryCapacityKwh;
+        states.batteryCapacity.displayStr = `${batteryCapacityKwh} kWh`;
+        states.batteryPower.display = (displayAbsPower) ? this.convertToKillo(Math.abs(batteryPowerW), dp) : this.convertToKillo(batteryPowerW, dp);
+        states.batteryPower.displayStr = `${(displayAbsPower) ? this.convertToKillo(Math.abs(batteryPowerW), dp) : this.convertToKillo(batteryPowerW, dp)} kW`;
+        states.chargePower.display = this.convertToKillo(chargePowerW, dp);
+        states.chargePower.displayStr = `${this.convertToKillo(chargePowerW, dp)} kW`;
+        states.dischargePower.display = this.convertToKillo(dischargePowerW, dp);
+        states.dischargePower.displayStr = `${this.convertToKillo(dischargePowerW, dp)} kW`;
+        states.socEnergy.display = socEnergyKWh;
+        states.socEnergy.displayStr = `${socEnergyKWh} kWh`;
+        states.batteryPowerReserveEnergy.display = this.convertToKillo(batteryPowerReserveEnergyWh, dp);
+        states.batteryPowerReserveEnergy.displayStr = `${this.convertToKillo(batteryPowerReserveEnergyWh, dp)} kWh`;
+        states.batteryPower.displayUnit = 'kW';
+        break;
+      case DISPLAY_TYPE_OPTIONS.DYNAMIC:
+        states.batteryCapacity.display = (Math.abs(batteryCapacityWh) >= 1000) ? batteryCapacityKwh : batteryCapacityWh;
+        states.batteryCapacity.displayStr = (Math.abs(batteryCapacityWh) >= 1000) ? `${batteryCapacityKwh} kWh` : `${batteryCapacityWh} Wh`;
+
+        states.batteryPower.display = (Math.abs(batteryPowerW) >= 1000) ? ((displayAbsPower) ? this.convertToKillo(Math.abs(batteryPowerW), dp) : this.convertToKillo(batteryPowerW, dp)) : ((displayAbsPower) ? Math.abs(batteryPowerW) : batteryPowerW);
+        states.batteryPower.displayStr = (Math.abs(batteryPowerW) >= 1000) ? `${(displayAbsPower) ? this.convertToKillo(Math.abs(batteryPowerW), dp) : this.convertToKillo(batteryPowerW, dp)} kW` : `${(displayAbsPower) ? Math.abs(batteryPowerW) : batteryPowerW} W`;
+        states.chargePower.display = (Math.abs(chargePowerW) >= 1000) ? this.convertToKillo(chargePowerW, dp) : chargePowerW;
+        states.chargePower.displayStr = (Math.abs(chargePowerW) >= 1000) ? `${this.convertToKillo(chargePowerW, dp)} kW` : `${chargePowerW} W`;
+        states.dischargePower.display = (Math.abs(dischargePowerW) >= 1000) ? this.convertToKillo(dischargePowerW, dp) : dischargePowerW;
+        states.dischargePower.displayStr = (Math.abs(dischargePowerW) >= 1000) ? `${this.convertToKillo(dischargePowerW, dp)} kW` : `${dischargePowerW} W`;
+        states.batteryPower.displayUnit = (Math.abs(batteryPowerW) >= 1000) ? 'kW' : 'W';
+
+        states.batteryPowerReserveEnergy.display = (Math.abs(batteryPowerReserveEnergyWh) >= 1000) ? this.convertToKillo(batteryPowerReserveEnergyWh, dp) : batteryPowerReserveEnergyWh;
+        states.batteryPowerReserveEnergy.displayStr = (Math.abs(batteryPowerReserveEnergyWh) >= 1000) ? `${this.convertToKillo(batteryPowerReserveEnergyWh, dp)} kWh` : `${batteryPowerReserveEnergyWh} Wh`;
+
+        states.socEnergy.display = (Math.abs(socEnergyWh) >= 1000) ? socEnergyKWh : socEnergyWh;
+        states.socEnergy.displayStr = (Math.abs(socEnergyWh) >= 1000) ? `${socEnergyKWh} kWh` : `${socEnergyWh} Wh`;
+        break;
+    }
+
+    this.calculatedStates = states
+
+  }
+
+  renderReserveAndCapacity(): TemplateResult {
     return html`
       <div class="status">
-        <span class="status-text"> Capacity: ${this.convertDisplay(capacity)} | Reserve: ${this.convertDisplay(reserveWatts)} (${reserve}%) </span>
+        <span class="status-text"> Capacity: ${this.calculatedStates.batteryCapacity.displayStr} | Reserve: ${this.calculatedStates.batteryPowerReserveEnergy.displayStr} (${this.calculatedStates.batteryPowerReservePercent.displayStr}) </span>
       </div>
     `;
   }
 
   renderPowerUsage(): TemplateResult {
 
-    const power = parseInt(this._getBatteryPowerEntity.state, 10);
     let powerColourClass = '';
     let powerSubtitle = html``;
 
-    const displayAbsPower = (this.config.display_abs_power !== undefined) ? this.config.display_abs_power : DISPLAY_ABS_POWER;
-
-    const p = (displayAbsPower) ? Math.abs(power) : power;
-
-    if (power > 0) {
+    if (this.calculatedStates.batteryPower.w > 0) {
       powerColourClass = 'battery-power-out';
       powerSubtitle = html`<ha-icon icon="mdi:export"></ha-icon>`;
     }
 
-    if (power < 0) {
+    if (this.calculatedStates.batteryPower.w < 0) {
       powerColourClass = 'battery-power-in';
       powerSubtitle = html`<ha-icon icon="mdi:import"></ha-icon>`;
     }
@@ -193,9 +392,9 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       >
         ${powerSubtitle}
         <span class="${powerColourClass}">
-          ${this.convertDisplayUnit(p)} 
+          ${this.calculatedStates.batteryPower.display} 
         </span>
-        ${this.getDisplayUnit(p, true)}
+        ${this.calculatedStates.batteryPower.displayUnit}
       </div>
     `;
   }
@@ -203,7 +402,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
   renderStats(): TemplateResult[] {
     const statsList: TemplateResult[] = [];
 
-    const power = parseInt(this._getBatteryPowerEntity.state, 10);
+    const power = this.calculatedStates.batteryPower.w;
 
     const estIcon = html`<ha-icon icon="mdi:timer-sand" style="--mdc-icon-size: 17px;"></ha-icon>`
     const timeIcon = html`<ha-icon icon="mdi:clock-outline" style="--mdc-icon-size: 17px;"></ha-icon>`
@@ -215,9 +414,9 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     let timeUntil = Math.round(Date.now() / 1000);
 
     if (power > 0) {
-      estimatedTimeAction = html`${estIcon} until ${this._getBatteryPowerReserve.state}%`;
+      estimatedTimeAction = html`${estIcon} until ${this.calculatedStates.batteryPowerReservePercent.displayStr}`;
       estimatedTime = this._getEstimatedTimeLeft;
-      timeUntilAction = html`${timeIcon} at ${this._getBatteryPowerReserve.state}%`;
+      timeUntilAction = html`${timeIcon} at ${this.calculatedStates.batteryPowerReservePercent.displayStr}`;
       timeUntil = this._getEstimatedTimeAtReserve;
     }
     if (power < 0) {
@@ -293,8 +492,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
   }
 
   getBatteryIcon(): string {
-    const socInt = parseInt(this._getSocEntity.state, 10);
-    // const prefix = this._getBatteryStatus === 'charging' ? '-charging' : '';
+    const socInt = this.calculatedStates.socPercent.value;
     const prefix = '';
 
     if (socInt === 100) {
@@ -329,7 +527,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
   }
 
   getBatteryColour(): string {
-    const socInt = parseInt(this._getSocEntity.state, 10);
+    const socInt = this.calculatedStates.socPercent.value;
 
     const socVH = (this.config?.soc_threshold_very_high) ? this.config.soc_threshold_very_high : SOC_THRESH_V_HIGH;
     const socH = (this.config?.soc_threshold_high) ? this.config.soc_threshold_high : SOC_THRESH_HIGH;
@@ -355,74 +553,12 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     }
   }
 
-  convertDisplay(num: number): string {
-    return `${this.convertDisplayUnit(num)} ${this.getDisplayUnit(num)}`;
-  }
-
-  getDisplayUnit(num: number, isPower = false): string {
-    const displayType = (this.config.display_type !== undefined) ? this.config.display_type : DISPLAY_TYPE;
-    const suffix = isPower ? '' : 'h';
-
-    switch(displayType) {
-      case DISPLAY_TYPE_OPTIONS.WH:
-      default:
-        return `W${suffix}`;
-      case DISPLAY_TYPE_OPTIONS.KWH:
-        return `kW${suffix}`;
-      case DISPLAY_TYPE_OPTIONS.DYNAMIC:
-        if(num !== 0) {
-          if(Math.abs(num) >= 1000) {
-            return `kW${suffix}`;
-          } else {
-            return `W${suffix}`;
-          }
-        } else {
-          return `W${suffix}`;
-        }
-    }
-  }
-
-  convertDisplayUnit(num: number): number {
-    const displayType = (this.config.display_type !== undefined) ? this.config.display_type : DISPLAY_TYPE;
-
-    switch(displayType) {
-      case DISPLAY_TYPE_OPTIONS.WH:
-      default:
-        return num;
-      case DISPLAY_TYPE_OPTIONS.KWH:
-        if(num !== 0) {
-          return this.convertKwhWithDp(num);
-        }
-        return 0;
-      case DISPLAY_TYPE_OPTIONS.DYNAMIC:
-        if(num !== 0) {
-          if(Math.abs(num) >= 1000) {
-            return this.convertKwhWithDp(num);
-          } else {
-            return num;
-          }
-        } else {
-          return num;
-        }
-    }
-  }
-
-  convertKwhWithDp(num: number): number {
-    let dp = parseInt((this.config.display_dp !== undefined) ? this.config.display_dp : DISPLAY_DP, 10);
-
-    if(dp > 3) {
-      dp = 3;
-    }
-
-    if(dp < 1) {
-      dp = 1;
-    }
-
+  convertToKillo(num: number, dp: number): number {
     const mult = 10 ** dp;
 
     if(num !== 0) {
-      const numKwh = num / 1000;
-      return Math.round((numKwh + Number.EPSILON) * mult) / mult;
+      const numK = num / 1000;
+      return Math.round((numK + Number.EPSILON) * mult) / mult;
     }
 
     return 0;
@@ -434,12 +570,11 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       return html``;
     }
 
+    this.calculateStats()
+
     const batteryIcon = this.getBatteryIcon();
     const batteryStatusIcon = this.getBatteryStatusIcon();
     const batteryIconColour = this.getBatteryColour();
-
-    const soc = parseInt(this._getSocEntity.state, 10);
-    const socWh = Math.round(parseFloat(this._getSocKwhEntity.state) * 1000);
 
     return html`
       <ha-card>
@@ -481,14 +616,14 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
                     data-entity-id="${`sensor.${this._getSensorPrefix}soc`}"
                     id="gtpc-battery-detail-soc-text"
                 > 
-                  ${soc}% 
+                  ${this.calculatedStates.socPercent.displayStr} 
                 </span>
                 <span 
                     class="icon-subtitle"
                     data-entity-id="${`sensor.${this._getSensorPrefix}soc_kwh`}"
                     id="gtpc-battery-detail-soc-kwh-text"
                 > 
-                  ${this.convertDisplay(socWh)} 
+                  ${this.calculatedStates.socEnergy.displayStr} 
                 </span>
                   ${this.renderPowerUsage()}
               </span>
@@ -526,18 +661,22 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
   }
 
   private get _getBatteryPowerEntity(): HassEntity {
+    // can be W or kW
     return this.hass.states[`sensor.${this._getSensorPrefix}battery_power`];
   }
 
   private get _getSocKwhEntity(): HassEntity {
+    // can be Wh or kWh
     return this.hass.states[`sensor.${this._getSensorPrefix}soc_kwh`];
   }
 
   private get _getDischargePowerEntity(): HassEntity {
+    // can be W or kW
     return this.hass.states[`sensor.${this._getSensorPrefix}discharge_power`];
   }
 
   private get _getChargePowerEntity(): HassEntity {
+    // can be W or kW
     return this.hass.states[`sensor.${this._getSensorPrefix}charge_power`];
   }
 
@@ -564,18 +703,12 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return status;
   }
 
-  private get _getReserveWatts(): number {
-    const capacity = parseFloat(this._getBatteryCapacityKwhEntity.state) * 1000;
-    const reserve = parseFloat(this._getBatteryPowerReserve.state) / 100;
-    return capacity * reserve;
-  }
-
   private get _getEstimatedTimeLeft(): number {
     let timeSecs = 0;
-    const socWatts = parseFloat(this._getSocKwhEntity.state) * 1000;
-    const capacity = parseFloat(this._getBatteryCapacityKwhEntity.state) * 1000;
-    const reserve = parseFloat(this._getBatteryPowerReserve.state) / 100;
-    const dischargePower = parseFloat(this._getDischargePowerEntity.state);
+    const socWatts = this.calculatedStates.socEnergy.Wh;
+    const capacity = this.calculatedStates.batteryCapacity.Wh;
+    const reserve = this.calculatedStates.batteryPowerReservePercent.value / 100;
+    const dischargePower = this.calculatedStates.dischargePower.w;
 
     const reserveWatts = capacity * reserve;
     const socWattsLessReserve = socWatts - reserveWatts;
@@ -590,9 +723,9 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
   private get _getEstimatedChargeTime(): number {
     let timeSecs = 0;
-    const chargePower = parseFloat(this._getChargePowerEntity.state);
-    const socWatts = parseFloat(this._getSocKwhEntity.state) * 1000;
-    const capacityWatts = parseFloat(this._getBatteryCapacityKwhEntity.state) * 1000;
+    const chargePower = this.calculatedStates.chargePower.w;
+    const socWatts = this.calculatedStates.socEnergy.Wh;
+    const capacityWatts = this.calculatedStates.batteryCapacity.Wh;
 
     if (chargePower > 0) {
       const socDiff = capacityWatts - socWatts;
