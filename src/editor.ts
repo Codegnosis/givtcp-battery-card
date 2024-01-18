@@ -46,7 +46,8 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
                 selector: {
                     number: {
                         min: 0,
-                        max: 100
+                        max: 100,
+                        unit_of_measurement: "%",
                     }
                 }
             },
@@ -65,7 +66,8 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
                 selector: {
                     number: {
                         min: 0,
-                        max: 100
+                        max: 100,
+                        unit_of_measurement: "%",
                     }
                 }
             },
@@ -84,7 +86,8 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
                 selector: {
                     number: {
                         min: 0,
-                        max: 100
+                        max: 100,
+                        unit_of_measurement: "%",
                     }
                 }
             },
@@ -103,7 +106,8 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
                 selector: {
                     number: {
                         min: 0,
-                        max: 100
+                        max: 100,
+                        unit_of_measurement: "%",
                     }
                 }
             },
@@ -183,6 +187,27 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
                 default: defaults.display_battery_rates,
                 selector: {
                     boolean: {}
+                }
+            },
+            {
+                name: 'use_custom_dod',
+                label: 'EXPERIMENTAL! Use custom DoD to override GivTCP battery capacity value.',
+                default: defaults.use_custom_dod,
+                selector: {
+                    boolean: {}
+                }
+            },
+            {
+                name: 'custom_dod',
+                label: 'EXPERIMENTAL! Custom DoD as percentage to override GivTCP battery capacity value.',
+                default: defaults.custom_dod,
+                selector: {
+                    number: {
+                        min: 0,
+                        max: 100,
+                        step: "any",
+                        unit_of_measurement: "%",
+                    }
                 }
             },
         ];

@@ -24,3 +24,7 @@ export const ICON_STATUS_CHARGING = 'mdi:lightning-bolt';
 export const ICON_STATUS_DISCHARGING = 'mdi:home-battery';
 
 export const DISPLAY_BATTERY_RATES = true;
+
+export const USE_CUSTOM_DOD = false;
+
+export const CUSTOM_DOD = 100.0;

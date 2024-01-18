@@ -58,6 +58,10 @@ export const styleCss = css`
   }
 
   .status-text-small {
+    color: var(--vc-secondary-text-color);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
     font-size: 12px;
   }
 

@@ -24,6 +24,8 @@ import {
   SOC_THRESH_V_HIGH_COLOUR,
   SOC_THRESH_V_LOW_COLOUR,
   DISPLAY_BATTERY_RATES,
+  USE_CUSTOM_DOD,
+  CUSTOM_DOD,
 } from "./constants";
 
 import './components/countdown'
@@ -257,6 +259,16 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       displayStr: '',
     }
 
+    const usableBatteryCapacity= {
+      rawState: rawBatteryCapacityEntity.state,
+      uom: rawBatteryCapacityEntity.attributes?.unit_of_measurement,
+      Wh: 0,
+      kWh: 0.0,
+      dod: 100.0,
+      display: 0,
+      displayStr: '',
+    }
+
     return {
       socPercent,
       batteryPower,
@@ -268,6 +280,8 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       batteryPowerReserveEnergy,
       chargeRate,
       dischargeRate,
+      usableBatteryCapacity,
+      calculatedSocEnergy: socEnergy,
     }
   }
 
@@ -277,6 +291,9 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     const displayType = (this.config.display_type !== undefined) ? this.config.display_type : DISPLAY_TYPE;
     const displayAbsPower = (this.config.display_abs_power !== undefined) ? this.config.display_abs_power : DISPLAY_ABS_POWER;
     let dp = parseInt((this.config.display_dp !== undefined) ? this.config.display_dp : DISPLAY_DP, 10);
+
+    const useCustomDod = (this.config.use_custom_dod !== undefined) ? this.config.use_custom_dod : USE_CUSTOM_DOD;
+    const customDod = (this.config.custom_dod !== undefined) ? this.config.custom_dod : CUSTOM_DOD;
 
     if(dp > 3) {
       dp = 3;
@@ -407,14 +424,74 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
         break;
     }
 
+    states.usableBatteryCapacity.Wh = states.batteryCapacity.Wh;
+    states.usableBatteryCapacity.kWh = states.batteryCapacity.kWh;
+    states.usableBatteryCapacity.display = states.batteryCapacity.display;
+    states.usableBatteryCapacity.displayStr = states.batteryCapacity.displayStr;
+    states.calculatedSocEnergy = states.socEnergy;
+
+    if(useCustomDod) {
+      // custom DoD calculations
+      const dod = parseFloat(customDod) / 100.0;
+      const soc = states.socPercent.value / 100.0;
+      const usableWh = Math.round(states.usableBatteryCapacity.Wh * dod);
+      const usableKwh = this.convertToKillo(usableWh, dp);
+      states.usableBatteryCapacity.dod = parseFloat(customDod);
+      states.usableBatteryCapacity.Wh = usableWh;
+      states.usableBatteryCapacity.kWh = usableKwh;
+
+      const socWh = Math.round(usableWh * soc);
+      const socKwh = this.convertToKillo(socWh, dp);
+      states.calculatedSocEnergy.Wh = socWh;
+      states.calculatedSocEnergy.kWh = socKwh;
+
+      switch(displayType) {
+        case DISPLAY_TYPE_OPTIONS.WH:
+        default:
+          states.usableBatteryCapacity.display = usableWh;
+          states.usableBatteryCapacity.displayStr = `${usableWh} Wh`;
+          states.calculatedSocEnergy.display = socWh;
+          states.calculatedSocEnergy.displayStr = `${socWh} Wh`;
+          break;
+        case DISPLAY_TYPE_OPTIONS.KWH:
+          states.usableBatteryCapacity.display = usableKwh;
+          states.usableBatteryCapacity.displayStr = `${usableKwh} kWh`;
+          states.calculatedSocEnergy.display = socKwh;
+          states.calculatedSocEnergy.displayStr = `${socKwh} kWh`;
+          break;
+        case DISPLAY_TYPE_OPTIONS.DYNAMIC:
+          states.usableBatteryCapacity.display = (Math.abs(usableWh) >= 1000) ? usableKwh : usableWh;
+          states.usableBatteryCapacity.displayStr = (Math.abs(usableWh) >= 1000) ? `${usableKwh} kWh` : `${usableWh} Wh`;
+
+          states.calculatedSocEnergy.display = (Math.abs(socWh) >= 1000) ? socKwh : socWh;
+          states.calculatedSocEnergy.displayStr = (Math.abs(socWh) >= 1000) ? `${socKwh} kWh` : `${socWh} Wh`;
+          break;
+      }
+    }
+
     this.calculatedStates = states
 
   }
 
   renderReserveAndCapacity(): TemplateResult {
+
+    const useCustomDod = (this.config.use_custom_dod !== undefined) ? this.config.use_custom_dod : USE_CUSTOM_DOD;
+    const customDod = (this.config.custom_dod !== undefined) ? this.config.custom_dod : CUSTOM_DOD;
+
+    let dod = html``;
+    if(useCustomDod) {
+      dod = html`
+        <div class="status">
+          <span class="status-text-small"> DoD: ${customDod}% | Usable Capacity: ${this.calculatedStates.usableBatteryCapacity.displayStr}</span>
+        </div>`
+    }
+
     return html`
-      <div class="status">
-        <span class="status-text"> Capacity: ${this.calculatedStates.batteryCapacity.displayStr} | Reserve: ${this.calculatedStates.batteryPowerReserveEnergy.displayStr} (${this.calculatedStates.batteryPowerReservePercent.displayStr}) </span>
+      <div>
+        <div class="status">
+          <span class="status-text"> Capacity: ${this.calculatedStates.batteryCapacity.displayStr} | Reserve: ${this.calculatedStates.batteryPowerReserveEnergy.displayStr} (${this.calculatedStates.batteryPowerReservePercent.displayStr})</span>
+        </div>
+        ${dod}
       </div>
     `;
   }
@@ -745,7 +822,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
                     data-entity-id="${`sensor.${this._getSensorPrefix}soc_kwh`}"
                     id="gtpc-battery-detail-soc-kwh-text"
                 > 
-                  ${this.calculatedStates.socEnergy.displayStr} 
+                  ${this.calculatedStates.calculatedSocEnergy.displayStr} 
                 </span>
                   ${this.renderPowerUsage()}
               </span>
@@ -838,8 +915,8 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
   private get _getEstimatedTimeLeft(): number {
     let timeSecs = 0;
-    const socWatts = this.calculatedStates.socEnergy.Wh;
-    const capacity = this.calculatedStates.batteryCapacity.Wh;
+    const socWatts = this.calculatedStates.calculatedSocEnergy.Wh;
+    const capacity = this.calculatedStates.usableBatteryCapacity.Wh;
     const reserve = this.calculatedStates.batteryPowerReservePercent.value / 100;
     const dischargePower = this.calculatedStates.dischargePower.w;
 
@@ -857,8 +934,8 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
   private get _getEstimatedChargeTime(): number {
     let timeSecs = 0;
     const chargePower = this.calculatedStates.chargePower.w;
-    const socWatts = this.calculatedStates.socEnergy.Wh;
-    const capacityWatts = this.calculatedStates.batteryCapacity.Wh;
+    const socWatts = this.calculatedStates.calculatedSocEnergy.Wh;
+    const capacityWatts = this.calculatedStates.usableBatteryCapacity.Wh;
 
     if (chargePower > 0) {
       const socDiff = capacityWatts - socWatts;

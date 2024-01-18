@@ -16,7 +16,7 @@ import {
     ICON_STATUS_IDLE,
     ICON_STATUS_CHARGING,
     ICON_STATUS_DISCHARGING,
-    DISPLAY_BATTERY_RATES,
+    DISPLAY_BATTERY_RATES, USE_CUSTOM_DOD, CUSTOM_DOD,
 } from "./constants";
 
 export class ConfigUtils {
@@ -40,6 +40,8 @@ export class ConfigUtils {
             icon_status_charging: ICON_STATUS_CHARGING,
             icon_status_discharging: ICON_STATUS_DISCHARGING,
             display_battery_rates: DISPLAY_BATTERY_RATES,
+            use_custom_dod: USE_CUSTOM_DOD,
+            custom_dod: CUSTOM_DOD,
         };
     }
 
