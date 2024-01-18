@@ -61,4 +61,20 @@ export interface GivTcpBatteryStats {
         display: number,
         displayStr: string,
     },
+    chargeRate: {
+        rawState: string, // store raw value from GivTCP
+        uom: string | undefined, // unit_of_measurement form GivTCP
+        w: number,
+        kW: number,
+        display: number,
+        displayStr: string,
+    },
+    dischargeRate: {
+        rawState: string, // store raw value from GivTCP
+        uom: string | undefined, // unit_of_measurement form GivTCP
+        w: number,
+        kW: number,
+        display: number,
+        displayStr: string,
+    },
 }

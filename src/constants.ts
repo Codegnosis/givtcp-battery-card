@@ -22,3 +22,5 @@ export const DISPLAY_DP = 3;
 export const ICON_STATUS_IDLE = 'mdi:sleep';
 export const ICON_STATUS_CHARGING = 'mdi:lightning-bolt';
 export const ICON_STATUS_DISCHARGING = 'mdi:home-battery';
+
+export const DISPLAY_BATTERY_RATES = true;

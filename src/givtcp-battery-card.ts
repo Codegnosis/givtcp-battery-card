@@ -22,7 +22,8 @@ import {
   SOC_THRESH_MED_COLOUR,
   SOC_THRESH_V_HIGH,
   SOC_THRESH_V_HIGH_COLOUR,
-  SOC_THRESH_V_LOW_COLOUR
+  SOC_THRESH_V_LOW_COLOUR,
+  DISPLAY_BATTERY_RATES,
 } from "./constants";
 
 import './components/countdown'
@@ -125,11 +126,13 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     }
 
     const entitiesToCheck = [
-      `soc`,
-      `battery_power`,
-      `soc_kwh`,
-      `discharge_power`,
-      `charge_power`,
+      'soc',
+      'battery_power',
+      'soc_kwh',
+      'discharge_power',
+      'charge_power',
+      'battery_charge_rate',
+      'battery_discharge_rate',
     ];
 
     if (element.config?.entity) {
@@ -164,6 +167,8 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     const rawChargePowerEntity = this._getChargePowerEntity
     const rawBatteryCapacityEntity = this._getBatteryCapacityKwhEntity
     const rawBatteryPowerReserveEntity = this._getBatteryPowerReserve
+    const rawBatteryChargeRate = this._getBatteryChargeRate
+    const rawBatteryDischargeRate = this._getBatteryDischargeRate
 
     const socPercent = {
       rawState: rawSocPercentEntity.state,
@@ -234,6 +239,24 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       displayStr: '',
     }
 
+    const chargeRate  = {
+      rawState: rawBatteryChargeRate.state,
+      uom: rawBatteryChargeRate.attributes?.unit_of_measurement,
+      w: 0,
+      kW: 0.0,
+      display: 0,
+      displayStr: '',
+    }
+
+    const dischargeRate  = {
+      rawState: rawBatteryDischargeRate.state,
+      uom: rawBatteryDischargeRate.attributes?.unit_of_measurement,
+      w: 0,
+      kW: 0.0,
+      display: 0,
+      displayStr: '',
+    }
+
     return {
       socPercent,
       batteryPower,
@@ -243,6 +266,8 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       batteryCapacity,
       batteryPowerReservePercent,
       batteryPowerReserveEnergy,
+      chargeRate,
+      dischargeRate,
     }
   }
 
@@ -304,6 +329,18 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     states.socEnergy.Wh = socEnergyWh;
     states.socEnergy.kWh = socEnergyKWh;
 
+    const chargeRateRaw = (states.chargeRate.uom === "W") ? parseInt(states.chargeRate.rawState, 10) : parseFloat(states.chargeRate.rawState);
+    const chargeRateW = (states.chargeRate.uom === "W") ? chargeRateRaw : chargeRateRaw * 1000;
+    const chargeRateKW = (states.chargeRate.uom === "W") ? this.convertToKillo(chargeRateRaw, 3) : chargeRateRaw;
+    states.chargeRate.w = chargeRateW;
+    states.chargeRate.kW = chargeRateKW;
+
+    const dischargeRateRaw = (states.dischargeRate.uom === "W") ? parseInt(states.dischargeRate.rawState, 10) : parseFloat(states.dischargeRate.rawState);
+    const dischargeRateW = (states.dischargeRate.uom === "W") ? dischargeRateRaw : dischargeRateRaw * 1000;
+    const dischargeRateKW = (states.dischargeRate.uom === "W") ? this.convertToKillo(dischargeRateRaw, 3) : dischargeRateRaw;
+    states.dischargeRate.w = dischargeRateW;
+    states.dischargeRate.kW = dischargeRateKW;
+
     // format displays
     switch(displayType) {
       case DISPLAY_TYPE_OPTIONS.WH:
@@ -321,6 +358,10 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
         states.batteryPowerReserveEnergy.display = batteryPowerReserveEnergyWh;
         states.batteryPowerReserveEnergy.displayStr = `${batteryPowerReserveEnergyWh} Wh`;
         states.batteryPower.displayUnit = 'W';
+        states.chargeRate.display = chargeRateW;
+        states.chargeRate.displayStr = `${chargeRateW} W`;
+        states.dischargeRate.display = dischargeRateW;
+        states.dischargeRate.displayStr = `${dischargeRateW} W`;
         break;
       case DISPLAY_TYPE_OPTIONS.KWH:
         states.batteryCapacity.display = batteryCapacityKwh;
@@ -336,6 +377,10 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
         states.batteryPowerReserveEnergy.display = this.convertToKillo(batteryPowerReserveEnergyWh, dp);
         states.batteryPowerReserveEnergy.displayStr = `${this.convertToKillo(batteryPowerReserveEnergyWh, dp)} kWh`;
         states.batteryPower.displayUnit = 'kW';
+        states.chargeRate.display = this.convertToKillo(chargeRateW, dp);
+        states.chargeRate.displayStr = `${this.convertToKillo(chargeRateW, dp)} kW`;
+        states.dischargeRate.display = this.convertToKillo(dischargeRateW, dp);
+        states.dischargeRate.displayStr = `${this.convertToKillo(dischargeRateW, dp)} kW`;
         break;
       case DISPLAY_TYPE_OPTIONS.DYNAMIC:
         states.batteryCapacity.display = (Math.abs(batteryCapacityWh) >= 1000) ? batteryCapacityKwh : batteryCapacityWh;
@@ -354,6 +399,11 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
         states.socEnergy.display = (Math.abs(socEnergyWh) >= 1000) ? socEnergyKWh : socEnergyWh;
         states.socEnergy.displayStr = (Math.abs(socEnergyWh) >= 1000) ? `${socEnergyKWh} kWh` : `${socEnergyWh} Wh`;
+
+        states.chargeRate.display = (Math.abs(chargeRateW) >= 1000) ? this.convertToKillo(chargeRateW, dp) : chargeRateW;
+        states.chargeRate.displayStr = (Math.abs(chargeRateW) >= 1000) ? `${this.convertToKillo(chargeRateW, dp)} kW` : `${chargeRateW} W`;
+        states.dischargeRate.display = (Math.abs(dischargeRateW) >= 1000) ? this.convertToKillo(dischargeRateW, dp) : dischargeRateW;
+        states.dischargeRate.displayStr = (Math.abs(dischargeRateW) >= 1000) ? `${this.convertToKillo(dischargeRateW, dp)} kW` : `${dischargeRateW} W`;
         break;
     }
 
@@ -365,6 +415,57 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return html`
       <div class="status">
         <span class="status-text"> Capacity: ${this.calculatedStates.batteryCapacity.displayStr} | Reserve: ${this.calculatedStates.batteryPowerReserveEnergy.displayStr} (${this.calculatedStates.batteryPowerReservePercent.displayStr}) </span>
+      </div>
+    `;
+  }
+
+  renderRates(): TemplateResult {
+
+    const rates = html`
+        <div class="status">
+          <span class="status-text status-text-small">Max. Charge Rate: ${this.calculatedStates.chargeRate.displayStr} | Max. Discharge Rate: ${this.calculatedStates.dischargeRate.displayStr}</span>
+        </div>
+      `;
+
+    let pbColour = "";
+    let cl = "progress-bar-fill-n0";
+    let perc = 0;
+    let dispPerc = 0;
+    let p = 0;
+    let r = 0;
+
+    if (this.calculatedStates.batteryPower.w > 0) {
+      pbColour = "r";
+      p = this.calculatedStates.dischargePower.w
+      r = this.calculatedStates.dischargeRate.w
+    }
+
+    if (this.calculatedStates.batteryPower.w < 0) {
+      pbColour = "g";
+      p = this.calculatedStates.chargePower.w
+      r = this.calculatedStates.chargeRate.w
+    }
+
+    if(p > 0 && r > 0) {
+      perc = (p / r) * 100;
+      const pDp = (perc < 0.1) ? 2 : 1;
+      dispPerc = this.roundPercentage(perc, pDp);
+      cl = `progress-bar-fill-${pbColour}${Math.floor(dispPerc / 10) * 10}`;
+    }
+
+    return html`
+      <div>
+        <div class="status">
+          <span class="status-text status-text-small">${this._getBatteryStatus} @ ${dispPerc}% max. rate</span>
+        </div>
+        <div class="status">
+          <div class="rate-wrapper">
+            <div class="progress-bar">
+              <span class="progress-bar-fill ${cl}" style="width: ${dispPerc}%;"></span>
+            </div>
+          </div>
+        </div>
+        ${rates}
       </div>
     `;
   }
@@ -564,17 +665,38 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return 0;
   }
 
+  roundPercentage(num: number, dp: number): number {
+    const mult = 10 ** dp;
+
+    if(num !== 0) {
+      return Math.round((num + Number.EPSILON) * mult) / mult;
+    }
+
+    return 0;
+  }
+
   // https://lit.dev/docs/components/rendering/
   protected render(): TemplateResult | void {
     if (!this.config?.entity) {
       return html``;
     }
 
+    let batteryRateData = html``;
+    const displayBatteryRates = (this.config.display_battery_rates !== undefined) ? this.config.display_battery_rates : DISPLAY_BATTERY_RATES;
+
     this.calculateStats()
 
     const batteryIcon = this.getBatteryIcon();
     const batteryStatusIcon = this.getBatteryStatusIcon();
     const batteryIconColour = this.getBatteryColour();
+
+    if(displayBatteryRates) {
+      batteryRateData = html`
+        <div class="metadata">
+          ${this.renderRates()}
+        </div>
+      `
+    }
 
     return html`
       <ha-card>
@@ -635,6 +757,9 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
               </div>
             </div>
           </div>
+
+          ${batteryRateData}
+          
         </div>
       </ha-card>
     `;
@@ -686,6 +811,14 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
   private get _getBatteryPowerReserve(): HassEntity {
     return this.hass.states[`number.${this._getSensorPrefix}battery_power_reserve`];
+  }
+
+  private get _getBatteryChargeRate(): HassEntity {
+    return this.hass.states[`number.${this._getSensorPrefix}battery_charge_rate`];
+  }
+
+  private get _getBatteryDischargeRate(): HassEntity {
+    return this.hass.states[`number.${this._getSensorPrefix}battery_discharge_rate`];
   }
 
   private get _getBatteryStatus(): string {
