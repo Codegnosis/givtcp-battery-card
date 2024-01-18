@@ -28,7 +28,7 @@ export const styleCss = css`
     background: var(--vc-background);
     position: relative;
     text-align: center;
-    padding-bottom: 10px;
+    padding-bottom: 5px;
 
     &.not-available {
       filter: grayscale(1);
@@ -55,6 +55,10 @@ export const styleCss = css`
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+  }
+
+  .status-text-small {
+    font-size: 12px;
   }
 
   .status mwc-circular-progress {
@@ -85,7 +89,7 @@ export const styleCss = css`
     justify-content: center;
     color: var(--vc-secondary-text-color);
   }
-  
+
   .stats-col {
     flex: 33%;
     margin-top: auto;
@@ -108,7 +112,7 @@ export const styleCss = css`
     font-size: 18px;
     color: var(--vc-primary-text-color);
   }
-  
+
   .battery-icon-wrapper {
     display: flex;
     flex-direction: row;
@@ -156,4 +160,106 @@ export const styleCss = css`
   .battery-power-in {
     color: #43a047;
   }
+
+  .rate-wrapper {
+    width: 90%;
+  }
+
+  .progress-bar {
+    width: 100%;
+    padding: 2px;
+    border-radius: 2px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, .4);
+  }
+
+  .progress-bar-fill {
+    display: block;
+    height: 10px;
+    border-radius: 2px;
+  }
+  
+  .progress-bar-fill-n0 {
+    background-color: rgba(0,0,0,0);
+  }
+
+  .progress-bar-fill-r0 {
+    background-color: #DB4437ff;
+  }
+
+  .progress-bar-fill-r10 {
+    background-color: #CD3C31ff;
+  }
+
+  .progress-bar-fill-r20 {
+    background-color: #BF352Bff;
+  }
+
+  .progress-bar-fill-r30 {
+    background-color: #B12D25ff;
+  }
+
+  .progress-bar-fill-r40 {
+    background-color: #A3261Fff;
+  }
+
+  .progress-bar-fill-r50 {
+    background-color: #961E18ff;
+  }
+
+  .progress-bar-fill-r60 {
+    background-color: #881712ff;
+  }
+
+  .progress-bar-fill-r70 {
+    background-color: #7A0F0Cff;
+  }
+
+  .progress-bar-fill-r80 {
+    background-color: #6C0806ff;
+  }
+
+  .progress-bar-fill-r90 {
+    background-color: #5E0000ff;
+  }
+
+  .progress-bar-fill-g0 {
+    background-color: #43A047ff;
+  }
+
+  .progress-bar-fill-g10 {
+    background-color: #3C9642ff;
+  }
+
+  .progress-bar-fill-g20 {
+    background-color: #348C3Cff;
+  }
+
+  .progress-bar-fill-g30 {
+    background-color: #2D8237ff;
+  }
+
+  .progress-bar-fill-g40 {
+    background-color: #257832ff;
+  }
+
+  .progress-bar-fill-g50 {
+    background-color: #1E6D2Cff;
+  }
+
+  .progress-bar-fill-g60 {
+    background-color: #166327ff;
+  }
+
+  .progress-bar-fill-g70 {
+    background-color: #0F5922ff;
+  }
+
+  .progress-bar-fill-g80 {
+    background-color: #074F1Cff;
+  }
+
+  .progress-bar-fill-g90 {
+    background-color: #004517ff;
+  }
+
 `;

@@ -177,6 +177,14 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
                     icon:{},
                 }
             },
+            {
+                name: 'display_battery_rates',
+                label: 'Display data about battery charge/discharge rates',
+                default: defaults.display_battery_rates,
+                selector: {
+                    boolean: {}
+                }
+            },
         ];
     }
 
