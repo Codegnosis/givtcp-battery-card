@@ -503,17 +503,19 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     const customDod = (this.config.custom_dod !== undefined) ? this.config.custom_dod : CUSTOM_DOD;
 
     let dod = html``;
+    let capacityPrefix = "";
     if(useCustomDod) {
+      capacityPrefix = "Usable"
       dod = html`
         <div class="status">
-          <span class="status-text-small"> DoD: ${customDod}% | Usable Capacity: ${this.calculatedStates.usableBatteryCapacity.displayStr}</span>
+          <span class="status-text-small"> DoD: ${customDod}% | Actual Capacity: ${this.calculatedStates.batteryCapacity.displayStr}</span>
         </div>`
     }
 
     return html`
       <div>
         <div class="status">
-          <span class="status-text"> Capacity: ${this.calculatedStates.batteryCapacity.displayStr} | Reserve: ${this.calculatedStates.batteryPowerReserveEnergy.displayStr} (${this.calculatedStates.batteryPowerReservePercent.displayStr})</span>
+          <span class="status-text"> ${capacityPrefix} Capacity: ${this.calculatedStates.usableBatteryCapacity.displayStr} | Reserve: ${this.calculatedStates.batteryPowerReserveEnergy.displayStr} (${this.calculatedStates.batteryPowerReservePercent.displayStr})</span>
         </div>
         ${dod}
       </div>
