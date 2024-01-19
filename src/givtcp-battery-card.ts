@@ -25,7 +25,7 @@ import {
   SOC_THRESH_V_LOW_COLOUR,
   DISPLAY_BATTERY_RATES,
   USE_CUSTOM_DOD,
-  CUSTOM_DOD,
+  CUSTOM_DOD, CALCULATE_RESERVE_FROM_DOD,
 } from "./constants";
 
 import './components/countdown'
@@ -294,6 +294,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
     const useCustomDod = (this.config.use_custom_dod !== undefined) ? this.config.use_custom_dod : USE_CUSTOM_DOD;
     const customDod = (this.config.custom_dod !== undefined) ? this.config.custom_dod : CUSTOM_DOD;
+    const reserveFromDod = (this.config.calculate_reserve_from_dod !== undefined) ? this.config.calculate_reserve_from_dod : CALCULATE_RESERVE_FROM_DOD;
 
     if(dp > 3) {
       dp = 3;
@@ -445,6 +446,16 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       states.calculatedSocEnergy.Wh = socWh;
       states.calculatedSocEnergy.kWh = socKwh;
 
+      let usableBatteryPowerReserveEnergyWh = 0;
+      let usableBatteryPowerReserveEnergyKWh = 0;
+
+      if(reserveFromDod) {
+        usableBatteryPowerReserveEnergyWh = Math.round(usableWh * (batteryPowerReservePercent / 100))
+        usableBatteryPowerReserveEnergyKWh = this.convertToKillo(usableBatteryPowerReserveEnergyWh, 3);
+        states.batteryPowerReserveEnergy.Wh = usableBatteryPowerReserveEnergyWh;
+        states.batteryPowerReserveEnergy.kWh = usableBatteryPowerReserveEnergyKWh;
+      }
+
       switch(displayType) {
         case DISPLAY_TYPE_OPTIONS.WH:
         default:
@@ -452,12 +463,20 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
           states.usableBatteryCapacity.displayStr = `${usableWh} Wh`;
           states.calculatedSocEnergy.display = socWh;
           states.calculatedSocEnergy.displayStr = `${socWh} Wh`;
+          if(reserveFromDod) {
+            states.batteryPowerReserveEnergy.display = usableBatteryPowerReserveEnergyWh;
+            states.batteryPowerReserveEnergy.displayStr = `${usableBatteryPowerReserveEnergyKWh} Wh`;
+          }
           break;
         case DISPLAY_TYPE_OPTIONS.KWH:
           states.usableBatteryCapacity.display = usableKwh;
           states.usableBatteryCapacity.displayStr = `${usableKwh} kWh`;
           states.calculatedSocEnergy.display = socKwh;
           states.calculatedSocEnergy.displayStr = `${socKwh} kWh`;
+          if(reserveFromDod) {
+            states.batteryPowerReserveEnergy.display = usableBatteryPowerReserveEnergyKWh;
+            states.batteryPowerReserveEnergy.displayStr = `${usableBatteryPowerReserveEnergyKWh} Wh`;
+          }
           break;
         case DISPLAY_TYPE_OPTIONS.DYNAMIC:
           states.usableBatteryCapacity.display = (Math.abs(usableWh) >= 1000) ? usableKwh : usableWh;
@@ -465,6 +484,11 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
           states.calculatedSocEnergy.display = (Math.abs(socWh) >= 1000) ? socKwh : socWh;
           states.calculatedSocEnergy.displayStr = (Math.abs(socWh) >= 1000) ? `${socKwh} kWh` : `${socWh} Wh`;
+
+          if(reserveFromDod) {
+            states.batteryPowerReserveEnergy.display = (Math.abs(usableBatteryPowerReserveEnergyWh) >= 1000) ? this.convertToKillo(usableBatteryPowerReserveEnergyWh, dp) : usableBatteryPowerReserveEnergyWh;
+            states.batteryPowerReserveEnergy.displayStr = (Math.abs(usableBatteryPowerReserveEnergyWh) >= 1000) ? `${this.convertToKillo(usableBatteryPowerReserveEnergyWh, dp)} kWh` : `${usableBatteryPowerReserveEnergyWh} Wh`;
+          }
           break;
       }
     }

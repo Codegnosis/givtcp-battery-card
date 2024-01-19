@@ -16,7 +16,10 @@ import {
     ICON_STATUS_IDLE,
     ICON_STATUS_CHARGING,
     ICON_STATUS_DISCHARGING,
-    DISPLAY_BATTERY_RATES, USE_CUSTOM_DOD, CUSTOM_DOD,
+    DISPLAY_BATTERY_RATES,
+    USE_CUSTOM_DOD,
+    CUSTOM_DOD,
+    CALCULATE_RESERVE_FROM_DOD,
 } from "./constants";
 
 export class ConfigUtils {
@@ -42,6 +45,7 @@ export class ConfigUtils {
             display_battery_rates: DISPLAY_BATTERY_RATES,
             use_custom_dod: USE_CUSTOM_DOD,
             custom_dod: CUSTOM_DOD,
+            calculate_reserve_from_dod: CALCULATE_RESERVE_FROM_DOD,
         };
     }
 

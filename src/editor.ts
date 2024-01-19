@@ -210,6 +210,14 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
                     }
                 }
             },
+            {
+                name: 'calculate_reserve_from_dod',
+                label: 'EXPERIMENTAL! Use custom DoD to calculate the battery reserve value',
+                default: defaults.calculate_reserve_from_dod,
+                selector: {
+                    boolean: {}
+                }
+            },
         ];
     }
 
