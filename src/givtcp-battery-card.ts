@@ -381,16 +381,16 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
         states.dischargeRate.displayStr = `${dischargeRateW} W`;
         break;
       case DISPLAY_TYPE_OPTIONS.KWH:
-        states.batteryCapacity.display = batteryCapacityKwh;
-        states.batteryCapacity.displayStr = `${batteryCapacityKwh} kWh`;
+        states.batteryCapacity.display = this.convertToKillo(batteryCapacityWh, dp);
+        states.batteryCapacity.displayStr = `${this.convertToKillo(batteryCapacityWh, dp)} kWh`;
         states.batteryPower.display = (displayAbsPower) ? this.convertToKillo(Math.abs(batteryPowerW), dp) : this.convertToKillo(batteryPowerW, dp);
         states.batteryPower.displayStr = `${(displayAbsPower) ? this.convertToKillo(Math.abs(batteryPowerW), dp) : this.convertToKillo(batteryPowerW, dp)} kW`;
         states.chargePower.display = this.convertToKillo(chargePowerW, dp);
         states.chargePower.displayStr = `${this.convertToKillo(chargePowerW, dp)} kW`;
         states.dischargePower.display = this.convertToKillo(dischargePowerW, dp);
         states.dischargePower.displayStr = `${this.convertToKillo(dischargePowerW, dp)} kW`;
-        states.socEnergy.display = socEnergyKWh;
-        states.socEnergy.displayStr = `${socEnergyKWh} kWh`;
+        states.socEnergy.display = this.convertToKillo(socEnergyWh, dp);
+        states.socEnergy.displayStr = `${this.convertToKillo(socEnergyWh, dp)} kWh`;
         states.batteryPowerReserveEnergy.display = this.convertToKillo(batteryPowerReserveEnergyWh, dp);
         states.batteryPowerReserveEnergy.displayStr = `${this.convertToKillo(batteryPowerReserveEnergyWh, dp)} kWh`;
         states.batteryPower.displayUnit = 'kW';
@@ -400,8 +400,8 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
         states.dischargeRate.displayStr = `${this.convertToKillo(dischargeRateW, dp)} kW`;
         break;
       case DISPLAY_TYPE_OPTIONS.DYNAMIC:
-        states.batteryCapacity.display = (Math.abs(batteryCapacityWh) >= 1000) ? batteryCapacityKwh : batteryCapacityWh;
-        states.batteryCapacity.displayStr = (Math.abs(batteryCapacityWh) >= 1000) ? `${batteryCapacityKwh} kWh` : `${batteryCapacityWh} Wh`;
+        states.batteryCapacity.display = (Math.abs(batteryCapacityWh) >= 1000) ? this.convertToKillo(batteryCapacityWh, dp)  : batteryCapacityWh;
+        states.batteryCapacity.displayStr = (Math.abs(batteryCapacityWh) >= 1000) ? `${this.convertToKillo(batteryCapacityWh, dp) } kWh` : `${batteryCapacityWh} Wh`;
 
         states.batteryPower.display = (Math.abs(batteryPowerW) >= 1000) ? ((displayAbsPower) ? this.convertToKillo(Math.abs(batteryPowerW), dp) : this.convertToKillo(batteryPowerW, dp)) : ((displayAbsPower) ? Math.abs(batteryPowerW) : batteryPowerW);
         states.batteryPower.displayStr = (Math.abs(batteryPowerW) >= 1000) ? `${(displayAbsPower) ? this.convertToKillo(Math.abs(batteryPowerW), dp) : this.convertToKillo(batteryPowerW, dp)} kW` : `${(displayAbsPower) ? Math.abs(batteryPowerW) : batteryPowerW} W`;
@@ -414,8 +414,8 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
         states.batteryPowerReserveEnergy.display = (Math.abs(batteryPowerReserveEnergyWh) >= 1000) ? this.convertToKillo(batteryPowerReserveEnergyWh, dp) : batteryPowerReserveEnergyWh;
         states.batteryPowerReserveEnergy.displayStr = (Math.abs(batteryPowerReserveEnergyWh) >= 1000) ? `${this.convertToKillo(batteryPowerReserveEnergyWh, dp)} kWh` : `${batteryPowerReserveEnergyWh} Wh`;
 
-        states.socEnergy.display = (Math.abs(socEnergyWh) >= 1000) ? socEnergyKWh : socEnergyWh;
-        states.socEnergy.displayStr = (Math.abs(socEnergyWh) >= 1000) ? `${socEnergyKWh} kWh` : `${socEnergyWh} Wh`;
+        states.socEnergy.display = (Math.abs(socEnergyWh) >= 1000) ? this.convertToKillo(socEnergyWh, dp) : socEnergyWh;
+        states.socEnergy.displayStr = (Math.abs(socEnergyWh) >= 1000) ? `${this.convertToKillo(socEnergyWh, dp)} kWh` : `${socEnergyWh} Wh`;
 
         states.chargeRate.display = (Math.abs(chargeRateW) >= 1000) ? this.convertToKillo(chargeRateW, dp) : chargeRateW;
         states.chargeRate.displayStr = (Math.abs(chargeRateW) >= 1000) ? `${this.convertToKillo(chargeRateW, dp)} kW` : `${chargeRateW} W`;
