@@ -442,7 +442,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       states.usableBatteryCapacity.kWh = usableKwh;
 
       const socWh = Math.round(usableWh * soc);
-      const socKwh = this.convertToKillo(socWh, dp);
+      const socKwh = this.convertToKillo(socWh, 3);
       states.calculatedSocEnergy.Wh = socWh;
       states.calculatedSocEnergy.kWh = socKwh;
 
@@ -471,19 +471,19 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
         case DISPLAY_TYPE_OPTIONS.KWH:
           states.usableBatteryCapacity.display = usableKwh;
           states.usableBatteryCapacity.displayStr = `${usableKwh} kWh`;
-          states.calculatedSocEnergy.display = socKwh;
-          states.calculatedSocEnergy.displayStr = `${socKwh} kWh`;
+          states.calculatedSocEnergy.display = this.convertToKillo(socWh, dp);
+          states.calculatedSocEnergy.displayStr = `${this.convertToKillo(socWh, dp)} kWh`;
           if(reserveFromDod) {
-            states.batteryPowerReserveEnergy.display = usableBatteryPowerReserveEnergyKWh;
-            states.batteryPowerReserveEnergy.displayStr = `${usableBatteryPowerReserveEnergyKWh} Wh`;
+            states.batteryPowerReserveEnergy.display = this.convertToKillo(usableBatteryPowerReserveEnergyWh, dp);
+            states.batteryPowerReserveEnergy.displayStr = `${this.convertToKillo(usableBatteryPowerReserveEnergyWh, dp)} kWh`;
           }
           break;
         case DISPLAY_TYPE_OPTIONS.DYNAMIC:
           states.usableBatteryCapacity.display = (Math.abs(usableWh) >= 1000) ? usableKwh : usableWh;
           states.usableBatteryCapacity.displayStr = (Math.abs(usableWh) >= 1000) ? `${usableKwh} kWh` : `${usableWh} Wh`;
 
-          states.calculatedSocEnergy.display = (Math.abs(socWh) >= 1000) ? socKwh : socWh;
-          states.calculatedSocEnergy.displayStr = (Math.abs(socWh) >= 1000) ? `${socKwh} kWh` : `${socWh} Wh`;
+          states.calculatedSocEnergy.display = (Math.abs(socWh) >= 1000) ? this.convertToKillo(socWh, dp) : socWh;
+          states.calculatedSocEnergy.displayStr = (Math.abs(socWh) >= 1000) ? `${this.convertToKillo(socWh, dp)} kWh` : `${socWh} Wh`;
 
           if(reserveFromDod) {
             states.batteryPowerReserveEnergy.display = (Math.abs(usableBatteryPowerReserveEnergyWh) >= 1000) ? this.convertToKillo(usableBatteryPowerReserveEnergyWh, dp) : usableBatteryPowerReserveEnergyWh;
