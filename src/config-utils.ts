@@ -19,7 +19,7 @@ import {
     DISPLAY_BATTERY_RATES,
     USE_CUSTOM_DOD,
     CUSTOM_DOD,
-    CALCULATE_RESERVE_FROM_DOD,
+    CALCULATE_RESERVE_FROM_DOD, DISPLAY_CUSTOM_DOD_STATS,
 } from "./constants";
 
 export class ConfigUtils {
@@ -46,6 +46,7 @@ export class ConfigUtils {
             use_custom_dod: USE_CUSTOM_DOD,
             custom_dod: CUSTOM_DOD,
             calculate_reserve_from_dod: CALCULATE_RESERVE_FROM_DOD,
+            display_custom_dod_stats: DISPLAY_CUSTOM_DOD_STATS,
         };
     }
 

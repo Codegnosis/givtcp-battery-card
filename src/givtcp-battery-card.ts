@@ -25,7 +25,9 @@ import {
   SOC_THRESH_V_LOW_COLOUR,
   DISPLAY_BATTERY_RATES,
   USE_CUSTOM_DOD,
-  CUSTOM_DOD, CALCULATE_RESERVE_FROM_DOD,
+  CUSTOM_DOD,
+  CALCULATE_RESERVE_FROM_DOD,
+  DISPLAY_CUSTOM_DOD_STATS,
 } from "./constants";
 
 import './components/countdown'
@@ -501,10 +503,11 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
     const useCustomDod = (this.config.use_custom_dod !== undefined) ? this.config.use_custom_dod : USE_CUSTOM_DOD;
     const customDod = (this.config.custom_dod !== undefined) ? this.config.custom_dod : CUSTOM_DOD;
+    const displayCustomDod = (this.config.display_custom_dod_stats !== undefined) ? this.config.display_custom_dod_stats : DISPLAY_CUSTOM_DOD_STATS;
 
     let dod = html``;
     let capacityPrefix = "";
-    if(useCustomDod) {
+    if(useCustomDod && displayCustomDod) {
       capacityPrefix = "Usable"
       dod = html`
         <div class="status">

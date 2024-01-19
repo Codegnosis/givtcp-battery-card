@@ -198,6 +198,14 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
                 }
             },
             {
+                name: 'display_custom_dod_stats',
+                label: 'EXPERIMENTAL! Display the custom DOD stats',
+                default: defaults.display_custom_dod_stats,
+                selector: {
+                    boolean: {}
+                }
+            },
+            {
                 name: 'custom_dod',
                 label: 'EXPERIMENTAL! Custom DoD as percentage to override GivTCP battery capacity value.',
                 default: defaults.custom_dod,
