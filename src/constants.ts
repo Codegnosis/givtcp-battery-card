@@ -24,3 +24,18 @@ export const ICON_STATUS_CHARGING = 'mdi:lightning-bolt';
 export const ICON_STATUS_DISCHARGING = 'mdi:home-battery';
 
 export const DISPLAY_BATTERY_RATES = true;
+
+export const USE_CUSTOM_DOD = false;
+
+export const CUSTOM_DOD = 100.0;
+
+export const CALCULATE_RESERVE_FROM_DOD = false;
+
+export const DISPLAY_CUSTOM_DOD_STATS = true;
+
+export const DISPLAY_UNITS = {
+    W: "W",
+    KW: "kW",
+    WH: "Wh",
+    KWH: "kWh",
+}

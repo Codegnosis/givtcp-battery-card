@@ -46,7 +46,8 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
                 selector: {
                     number: {
                         min: 0,
-                        max: 100
+                        max: 100,
+                        unit_of_measurement: "%",
                     }
                 }
             },
@@ -65,7 +66,8 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
                 selector: {
                     number: {
                         min: 0,
-                        max: 100
+                        max: 100,
+                        unit_of_measurement: "%",
                     }
                 }
             },
@@ -84,7 +86,8 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
                 selector: {
                     number: {
                         min: 0,
-                        max: 100
+                        max: 100,
+                        unit_of_measurement: "%",
                     }
                 }
             },
@@ -103,7 +106,8 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
                 selector: {
                     number: {
                         min: 0,
-                        max: 100
+                        max: 100,
+                        unit_of_measurement: "%",
                     }
                 }
             },
@@ -133,7 +137,7 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
             },
             {
                 name: 'display_type',
-                label: 'Display type (0: Wh | 1: kWh | 2: Dynamic)',
+                label: 'Display type (0: Wh/W | 1: kWh/kW | 2: Dynamic)',
                 default: defaults.display_type,
                 selector: {
                     number: {
@@ -181,6 +185,43 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
                 name: 'display_battery_rates',
                 label: 'Display data about battery charge/discharge rates',
                 default: defaults.display_battery_rates,
+                selector: {
+                    boolean: {}
+                }
+            },
+            {
+                name: 'use_custom_dod',
+                label: 'EXPERIMENTAL! Use custom DoD to override GivTCP battery capacity value.',
+                default: defaults.use_custom_dod,
+                selector: {
+                    boolean: {}
+                }
+            },
+            {
+                name: 'display_custom_dod_stats',
+                label: 'EXPERIMENTAL! Display the custom DOD stats',
+                default: defaults.display_custom_dod_stats,
+                selector: {
+                    boolean: {}
+                }
+            },
+            {
+                name: 'custom_dod',
+                label: 'EXPERIMENTAL! Custom DoD as percentage to override GivTCP battery capacity value.',
+                default: defaults.custom_dod,
+                selector: {
+                    number: {
+                        min: 0,
+                        max: 100,
+                        step: "any",
+                        unit_of_measurement: "%",
+                    }
+                }
+            },
+            {
+                name: 'calculate_reserve_from_dod',
+                label: 'EXPERIMENTAL! Use custom DoD to calculate the battery reserve value',
+                default: defaults.calculate_reserve_from_dod,
                 selector: {
                     boolean: {}
                 }
