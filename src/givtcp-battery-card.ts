@@ -217,6 +217,10 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return (uom === DISPLAY_UNITS.W || uom === DISPLAY_UNITS.WH);
   }
 
+  isPowerUom(uom: string): boolean {
+    return (uom === DISPLAY_UNITS.W || uom === DISPLAY_UNITS.KW);
+  }
+
   getGivTcpStats(state: string, uomRaw: string | undefined): GivTcpStats {
     const displayType = (this.config.display_type !== undefined) ? this.config.display_type : DISPLAY_TYPE;
     const displayAbsPower = (this.config.display_abs_power !== undefined) ? this.config.display_abs_power : DISPLAY_ABS_POWER;
@@ -229,8 +233,8 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     const kValue = this.isWorWh(uom) ? this.convertToKillo(rawAsNum, 3) : rawAsNum;
     const displayK = this.convertToKillo(value, dp);
 
-    const displayUom = this.isWorWh(uom) ? uom : this.getStandardisedUom(`k${uom}`);
-    const displayKUom = this.isWorWh(uom) ? this.getStandardisedUom(`k${uom}`) : uom;
+    const displayUom = this.isPowerUom(uom) ? DISPLAY_UNITS.W : DISPLAY_UNITS.WH;
+    const displayKUom = this.isPowerUom(uom) ? DISPLAY_UNITS.KW : DISPLAY_UNITS.KWH;
 
     let display = 0;
     let displayStr = "";

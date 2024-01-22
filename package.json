@@ -1,6 +1,6 @@
 {
   "name": "givtcp-battery-card",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Lovelace card to display GivTCP battery info",
   "private": true,
   "type": "module",
