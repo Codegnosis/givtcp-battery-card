@@ -186,83 +186,83 @@ export const styleCss = css`
     background-color: rgba(0,0,0,0);
   }
 
-  .progress-bar-fill-r0 {
+  .progress-bar-fill-r10 {
     background-color: #DB4437ff;
   }
 
-  .progress-bar-fill-r10 {
+  .progress-bar-fill-r20 {
     background-color: #CD3C31ff;
   }
 
-  .progress-bar-fill-r20 {
+  .progress-bar-fill-r30 {
     background-color: #BF352Bff;
   }
 
-  .progress-bar-fill-r30 {
+  .progress-bar-fill-r40 {
     background-color: #B12D25ff;
   }
 
-  .progress-bar-fill-r40 {
+  .progress-bar-fill-r50 {
     background-color: #A3261Fff;
   }
 
-  .progress-bar-fill-r50 {
+  .progress-bar-fill-r60 {
     background-color: #961E18ff;
   }
 
-  .progress-bar-fill-r60 {
+  .progress-bar-fill-r70 {
     background-color: #881712ff;
   }
 
-  .progress-bar-fill-r70 {
+  .progress-bar-fill-r80 {
     background-color: #7A0F0Cff;
   }
 
-  .progress-bar-fill-r80 {
+  .progress-bar-fill-r90 {
     background-color: #6C0806ff;
   }
 
-  .progress-bar-fill-r90 {
+  .progress-bar-fill-r100 {
     background-color: #5E0000ff;
   }
 
-  .progress-bar-fill-g0 {
+  .progress-bar-fill-g10 {
     background-color: #43A047ff;
   }
 
-  .progress-bar-fill-g10 {
+  .progress-bar-fill-g20 {
     background-color: #3C9642ff;
   }
 
-  .progress-bar-fill-g20 {
+  .progress-bar-fill-g30 {
     background-color: #348C3Cff;
   }
 
-  .progress-bar-fill-g30 {
+  .progress-bar-fill-g40 {
     background-color: #2D8237ff;
   }
 
-  .progress-bar-fill-g40 {
+  .progress-bar-fill-g50 {
     background-color: #257832ff;
   }
 
-  .progress-bar-fill-g50 {
+  .progress-bar-fill-g60 {
     background-color: #1E6D2Cff;
   }
 
-  .progress-bar-fill-g60 {
+  .progress-bar-fill-g70 {
     background-color: #166327ff;
   }
 
-  .progress-bar-fill-g70 {
+  .progress-bar-fill-g80 {
     background-color: #0F5922ff;
   }
 
-  .progress-bar-fill-g80 {
+  .progress-bar-fill-g90 {
     background-color: #074F1Cff;
   }
 
-  .progress-bar-fill-g90 {
+  .progress-bar-fill-g100 {
     background-color: #004517ff;
   }
 

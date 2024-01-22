@@ -32,3 +32,10 @@ export const CUSTOM_DOD = 100.0;
 export const CALCULATE_RESERVE_FROM_DOD = false;
 
 export const DISPLAY_CUSTOM_DOD_STATS = true;
+
+export const DISPLAY_UNITS = {
+    W: "W",
+    KW: "kW",
+    WH: "Wh",
+    KWH: "kWh",
+}

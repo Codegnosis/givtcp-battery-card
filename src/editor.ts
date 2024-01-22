@@ -137,7 +137,7 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
             },
             {
                 name: 'display_type',
-                label: 'Display type (0: Wh | 1: kWh | 2: Dynamic)',
+                label: 'Display type (0: Wh/W | 1: kWh/kW | 2: Dynamic)',
                 default: defaults.display_type,
                 selector: {
                     number: {
