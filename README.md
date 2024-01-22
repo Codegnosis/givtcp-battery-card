@@ -46,26 +46,31 @@ Edit your chosen dashboard and use the "Add Card" button to select the "GivTCP B
 
 ## Options
 
-| Name                           | Type    | Requirement  | Description                                                                       | Default              |
-|--------------------------------|---------|--------------|-----------------------------------------------------------------------------------|----------------------|
-| type                           | string  | **Required** | `custom:givtcp-battery-card`                                                      |                      |
-| entity                         | string  | **Required** | Home Assistant entity ID.                                                         | `none`               |
-| name                           | string  | Optional     | Card name                                                                         | `Battery`            |
-| soc_threshold_very_high        | number  | Optional     | When SOC is >= this, `soc_threshold_very_high_colour` is used for the icon colour | `80`                 |
-| soc_threshold_high             | number  | Optional     | When SOC is >= this, `soc_threshold_high_colour` is used for the icon colour      | `60`                 |
-| soc_threshold_medium           | number  | Optional     | When SOC is >= this, `soc_threshold_medium_colour` is used for the icon colour    | `40`                 |
-| soc_threshold_low              | number  | Optional     | When SOC is >= this, `soc_threshold_low_colour` is used for the icon colour       | `20`                 |
-| soc_threshold_very_high_colour | array   | Optional     | RGB value for icon colour when SOC >= `soc_threshold_very_high`                   | `[0, 69, 23]`        |
-| soc_threshold_high_colour      | array   | Optional     | RGB value for icon colour when SOC >= `soc_threshold_high`                        | `[67, 160, 71]`      |
-| soc_threshold_medium_colour    | array   | Optional     | RGB value for icon colour when SOC >= `soc_threshold_medium`                      | `[255, 166, 0]`      |
-| soc_threshold_low_colour       | array   | Optional     | RGB value for icon colour when SOC >= `soc_threshold_low`                         | `[219, 68, 55]`      |
-| soc_threshold_very_low_colour  | array   | Optional     | RGB value for icon colour when SOC < `soc_threshold_low`                          | `[94, 0, 0]`         |
-| display_abs_power              | boolean | Optional     | Display the battery power usage as an absolute (unsigned integer) value           | `false`              |
-| display_type                   | number  | Optional     | Display type. 0: Wh, 1: kWh, 2: Dynamic                                           | `3`                  |
-| display_dp                     | number  | Optional     | Round to decimal places for `display_type` kWh or Dynamic. 1 - 3                  | `3`                  |
-| icon_status_idle               | string  | Optional     | Icon for Idle battery status                                                      | `mdi:sleep`          |
-| icon_status_charging           | string  | Optional     | Icon for Charging battery status                                                  | `mdi:lightning-bolt` |
-| icon_status_discharging        | string  | Optional     | Icon for Discharging battery status                                               | `mdi:home-battery`   |
+| Name                           | Type      | Requirement  | Description                                                                                                 | Default              |
+|--------------------------------|-----------|--------------|-------------------------------------------------------------------------------------------------------------|----------------------|
+| type                           | string    | **Required** | `custom:givtcp-battery-card`                                                                                |                      |
+| entity                         | string    | **Required** | Home Assistant entity ID.                                                                                   | `none`               |
+| name                           | string    | Optional     | Card name                                                                                                   | `Battery`            |
+| soc_threshold_very_high        | number    | Optional     | When SOC is >= this, `soc_threshold_very_high_colour` is used for the icon colour                           | `80`                 |
+| soc_threshold_high             | number    | Optional     | When SOC is >= this, `soc_threshold_high_colour` is used for the icon colour                                | `60`                 |
+| soc_threshold_medium           | number    | Optional     | When SOC is >= this, `soc_threshold_medium_colour` is used for the icon colour                              | `40`                 |
+| soc_threshold_low              | number    | Optional     | When SOC is >= this, `soc_threshold_low_colour` is used for the icon colour                                 | `20`                 |
+| soc_threshold_very_high_colour | array     | Optional     | RGB value for icon colour when SOC >= `soc_threshold_very_high`                                             | `[0, 69, 23]`        |
+| soc_threshold_high_colour      | array     | Optional     | RGB value for icon colour when SOC >= `soc_threshold_high`                                                  | `[67, 160, 71]`      |
+| soc_threshold_medium_colour    | array     | Optional     | RGB value for icon colour when SOC >= `soc_threshold_medium`                                                | `[255, 166, 0]`      |
+| soc_threshold_low_colour       | array     | Optional     | RGB value for icon colour when SOC >= `soc_threshold_low`                                                   | `[219, 68, 55]`      |
+| soc_threshold_very_low_colour  | array     | Optional     | RGB value for icon colour when SOC < `soc_threshold_low`                                                    | `[94, 0, 0]`         |
+| display_abs_power              | boolean   | Optional     | Display the battery power usage as an absolute (unsigned integer) value                                     | `false`              |
+| display_type                   | number    | Optional     | Display type. 0: Wh, 1: kWh, 2: Dynamic                                                                     | `3`                  |
+| display_dp                     | number    | Optional     | Round to decimal places for `display_type` kWh or Dynamic. 1 - 3                                            | `3`                  |
+| icon_status_idle               | string    | Optional     | Icon for Idle battery status                                                                                | `mdi:sleep`          |
+| icon_status_charging           | string    | Optional     | Icon for Charging battery status                                                                            | `mdi:lightning-bolt` |
+| icon_status_discharging        | string    | Optional     | Icon for Discharging battery status                                                                         | `mdi:home-battery`   |
+| display_battery_rates          | boolean   | Optional     | Display charge/dischare rate as % and graphical bar                                                         | `true`               |
+| use_custom_dod                 | boolean   | Optional     | Use custom DoD % to override GivTCP capacity & SoC values                                                   | `false`              |
+| custom_dod                     | number    | Optional     | Custom DoD value as a percentage. Used when `use_custom_dod` is `true`                                      | `100`                |
+| calculate_reserve_from_dod     | boolean   | Optional     | Use custom DoD value to also calculate the battery reserve value. Note - using this also affects the timers | `false `             |
+| display_custom_dod_stats       | boolean   | Optional     | Display the derived custom DoD (capacity and reserve) stats                                                 | `true`               |
 
 ## Raw YAML example
 
@@ -103,6 +108,11 @@ display_dp: 3
 icon_status_idle: mdi:sleep
 icon_status_charging: mdi:lightning-bolt
 icon_status_discharging: mdi:home-battery
+display_battery_rates: true
+use_custom_dod: true
+custom_dod: 95
+calculate_reserve_from_dod: true
+display_custom_dod_stats: true
 ```
 
 ## Multiple Invertors and Batteries
