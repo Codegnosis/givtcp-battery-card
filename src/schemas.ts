@@ -22,6 +22,14 @@ export const GENERAL_SCHEMA = (invertorList: string[], defaults: LovelaceCardCon
                 }
             },
         },
+        {
+            name: 'enable_debug_output',
+            label: 'Enable debug output to developer console',
+            default: defaults.enable_debug_output,
+            selector: {
+                boolean: {}
+            }
+        },
     ];
 }
 

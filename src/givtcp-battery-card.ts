@@ -341,6 +341,10 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       displayUnit: "%",
     }
 
+    if(this.config.enable_debug_output === true) {
+      console.log(states);
+    }
+
     this.calculatedStates = states;
   }
 
