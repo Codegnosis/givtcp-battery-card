@@ -341,6 +341,10 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       displayUnit: "%",
     }
 
+    if(this.config.enable_debug_output === true) {
+      console.log(states);
+    }
+
     this.calculatedStates = states;
   }
 
@@ -609,6 +613,19 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       return html``;
     }
 
+    // first check it's actually in invertor. Checking for the invertor_power entity should suffice
+    // as currently GivTCP only creates this entity for invertors
+    const invertorExists = this._getInvertorPower
+    if(invertorExists === undefined) {
+      return html`
+        <ha-card>
+          <div class="preview">
+            <p>Could not find invertor ${this.config.entity}. Please check your config and ensure you are adding
+            the invertor's serial sensor.</p>
+          </div>
+        </ha-card>`;
+    }
+
     let batteryRateData = html``;
     const displayBatteryRates = (this.config.display_battery_rates !== undefined) ? this.config.display_battery_rates : DISPLAY_BATTERY_RATES;
 
@@ -749,8 +766,13 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return this.hass.states[`number.${this._getSensorPrefix}battery_discharge_rate`];
   }
 
+  private get _getInvertorPower(): HassEntity {
+    return this.hass.states[`sensor.${this._getSensorPrefix}invertor_power`];
+  }
+
   private get _getBatteryStatus(): string {
-    const power = parseInt(this._getBatteryPowerEntity.state, 10);
+
+    const power = this.calculatedStates.batteryPower.value;
 
     let status = '';
     if (power > 0) {
