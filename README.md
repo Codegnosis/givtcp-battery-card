@@ -76,7 +76,7 @@ Edit your chosen dashboard and use the "Add Card" button to select the "GivTCP B
 
 ```yaml
 type: custom:givtcp-battery-card
-entity: sensor.givetcp_abc123_invertor_serial_number
+entity: sensor.givtcp_abc123_invertor_serial_number
 name: Battery
 soc_threshold_very_high: 80
 soc_threshold_high: 60
