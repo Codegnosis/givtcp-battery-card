@@ -767,7 +767,8 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
   }
 
   private get _getBatteryStatus(): string {
-    const power = parseInt(this._getBatteryPowerEntity.state, 10);
+
+    const power = this.calculatedStates.batteryPower.value;
 
     let status = '';
     if (power > 0) {
