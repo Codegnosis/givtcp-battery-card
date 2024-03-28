@@ -31,7 +31,7 @@ import {
   CUSTOM_DOD,
   CALCULATE_RESERVE_FROM_DOD,
   DISPLAY_CUSTOM_DOD_STATS,
-  DISPLAY_UNITS,
+  DISPLAY_UNITS, DISPLAY_ENERGY_TODAY,
 } from "./constants";
 
 import './components/countdown'
@@ -52,9 +52,9 @@ import {GivTcpBatteryStats, GivTcpStats} from "./types";
 
 /* eslint no-console: 0 */
 console.info(
-  `%c GIVTCP-BATTERY-CARD %c ${version}`,
+  `%c GIVTCP-BATTERY-CARD %c v${version} `,
   'color: green; font-weight: bold; background: black',
-  'color: green; font-weight: bold;',
+  'color: black; font-weight: bold; background: green',
 );
 
 @customElement('givtcp-battery-card')
@@ -288,6 +288,9 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     states.batteryCapacity = this.getGivTcpStats(this._getBatteryCapacityKwhEntity.state, DISPLAY_UNITS.KWH);
     states.socEnergy = this.getGivTcpStats(this._getSocKwhEntity.state, this._getSocKwhEntity.attributes?.unit_of_measurement);
 
+    states.chargeEnergyToday = this.getGivTcpStats(this._getChargeEnergyTodayEntity.state, this._getChargeEnergyTodayEntity.attributes?.unit_of_measurement);
+    states.dischargeEnergyToday = this.getGivTcpStats(this._getDischargeEnergyTodayEntity.state, this._getDischargeEnergyTodayEntity.attributes?.unit_of_measurement);
+
     // post process DOD
     let dod = (useCustomDod) ? Math.abs(parseFloat(customDod)) / 100.0 : 1.0;
     if(dod > 1) {
@@ -339,10 +342,6 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       display: (dispPerc > 100) ? 100 : dispPerc,
       displayStr: `${(dispPerc > 100) ? 100 : dispPerc}%`,
       displayUnit: "%",
-    }
-
-    if(this.config.enable_debug_output === true) {
-      console.log(states);
     }
 
     this.calculatedStates = states;
@@ -400,6 +399,23 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
         ${rates}
       </div>
     `;
+  }
+
+  renderEnergyToday(): TemplateResult {
+
+    const displayEnergyToday = (this.config.display_energy_today !== undefined) ? this.config.display_energy_today : DISPLAY_ENERGY_TODAY;
+
+    if(!displayEnergyToday) {
+      return html``;
+    }
+
+    return html`
+      <div>
+        <div class="status">
+          <span class="status-text status-text-small">Charge Today: ${this.calculatedStates.chargeEnergyToday.displayStr} | Discharge Today: ${this.calculatedStates.dischargeEnergyToday.displayStr}</span>
+        </div>
+      </div>
+      `
   }
 
   renderPowerUsage(): TemplateResult {
@@ -649,6 +665,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
           <div class="metadata">
             ${this.renderNameAndStatus()}
             ${this.renderReserveAndCapacity()}
+            ${this.renderEnergyToday()}
           </div>
 
           <div class="stats-wrapper">
@@ -702,7 +719,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
               </div>
             </div>
           </div>
-
+          
           ${batteryRateData}
           
         </div>
@@ -768,6 +785,14 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
   private get _getInvertorPower(): HassEntity {
     return this.hass.states[`sensor.${this._getSensorPrefix}invertor_power`];
+  }
+
+  private get _getChargeEnergyTodayEntity(): HassEntity {
+    return this.hass.states[`sensor.${this._getSensorPrefix}battery_charge_energy_today_kwh`];
+  }
+
+  private get _getDischargeEnergyTodayEntity(): HassEntity {
+    return this.hass.states[`sensor.${this._getSensorPrefix}battery_discharge_energy_today_kwh`];
   }
 
   private get _getBatteryStatus(): string {

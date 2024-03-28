@@ -22,14 +22,6 @@ export const GENERAL_SCHEMA = (invertorList: string[], defaults: LovelaceCardCon
                 }
             },
         },
-        {
-            name: 'enable_debug_output',
-            label: 'Enable debug output to developer console',
-            default: defaults.enable_debug_output,
-            selector: {
-                boolean: {}
-            }
-        },
     ];
 }
 
@@ -143,6 +135,14 @@ export const DISPLAY_SCHEMA = (defaults: LovelaceCardConfig) => {
             name: 'display_battery_rates',
             label: 'Display data about battery charge/discharge rates',
             default: defaults.display_battery_rates,
+            selector: {
+                boolean: {}
+            }
+        },
+        {
+            name: 'display_energy_today',
+            label: 'Display daily charge/discharge energy data',
+            default: defaults.display_energy_today,
             selector: {
                 boolean: {}
             }

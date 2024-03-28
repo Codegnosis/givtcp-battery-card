@@ -40,4 +40,4 @@ export const DISPLAY_UNITS = {
     KWH: "kWh",
 }
 
-export const ENABLE_DEBUG_OUTPUT = false;
+export const DISPLAY_ENERGY_TODAY = true;
