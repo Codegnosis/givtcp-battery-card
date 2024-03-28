@@ -71,6 +71,7 @@ Edit your chosen dashboard and use the "Add Card" button to select the "GivTCP B
 | custom_dod                     | number    | Optional     | Custom DoD value as a percentage. Used when `use_custom_dod` is `true`                                      | `100`                |
 | calculate_reserve_from_dod     | boolean   | Optional     | Use custom DoD value to also calculate the battery reserve value. Note - using this also affects the timers | `false `             |
 | display_custom_dod_stats       | boolean   | Optional     | Display the derived custom DoD (capacity and reserve) stats                                                 | `true`               |
+| display_energy_today           | boolean   | Optional     | Display statistics for daily charge/discharge                                                               | `true`               |
 
 ## Raw YAML example
 
@@ -113,6 +114,7 @@ use_custom_dod: true
 custom_dod: 95
 calculate_reserve_from_dod: true
 display_custom_dod_stats: true
+display_energy_today: true
 ```
 
 ## Multiple Invertors and Batteries
