@@ -19,7 +19,8 @@ import {
     DISPLAY_BATTERY_RATES,
     USE_CUSTOM_DOD,
     CUSTOM_DOD,
-    CALCULATE_RESERVE_FROM_DOD, DISPLAY_CUSTOM_DOD_STATS, ENABLE_DEBUG_OUTPUT,
+    CALCULATE_RESERVE_FROM_DOD,
+    DISPLAY_CUSTOM_DOD_STATS,
 } from "./constants";
 
 export class ConfigUtils {
@@ -47,7 +48,6 @@ export class ConfigUtils {
             custom_dod: CUSTOM_DOD,
             calculate_reserve_from_dod: CALCULATE_RESERVE_FROM_DOD,
             display_custom_dod_stats: DISPLAY_CUSTOM_DOD_STATS,
-            enable_debug_output: ENABLE_DEBUG_OUTPUT,
         };
     }
 
@@ -58,16 +58,24 @@ export class ConfigUtils {
                 newKey: 'display_type',
                 newVal: DISPLAY_TYPE_OPTIONS.DYNAMIC,
             },
+            enable_debug_output: {
+                newKey: 'DELETE',
+                newVal: null,
+            }
         };
 
         for (const [oldKey, newConf] of Object.entries(mappings)) {
             if (newConfig[oldKey]) {
-                newConfig[newConf.newKey] = newConfig[oldKey];
+                if(newConf.newKey === 'DELETE') {
+                    delete newConfig[oldKey];
+                } else {
+                    newConfig[newConf.newKey] = newConfig[oldKey];
 
-                if(newConf.newKey !== undefined) {
-                    newConfig[newConf.newKey] = newConf.newVal;
+                    if(newConf.newKey !== undefined) {
+                        newConfig[newConf.newKey] = newConf.newVal;
+                    }
+                    delete newConfig[oldKey];
                 }
-                delete newConfig[oldKey];
             }
         }
         return newConfig;
