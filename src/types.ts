@@ -22,4 +22,6 @@ export interface GivTcpBatteryStats {
     usableBatteryCapacity: GivTcpStats,
     calculatedSocEnergy: GivTcpStats,
     batteryUsageRatePercent: GivTcpStats,
+    chargeEnergyToday: GivTcpStats,
+    dischargeEnergyToday: GivTcpStats,
 }

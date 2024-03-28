@@ -21,6 +21,7 @@ import {
     CUSTOM_DOD,
     CALCULATE_RESERVE_FROM_DOD,
     DISPLAY_CUSTOM_DOD_STATS,
+    DISPLAY_ENERGY_TODAY,
 } from "./constants";
 
 export class ConfigUtils {
@@ -48,6 +49,7 @@ export class ConfigUtils {
             custom_dod: CUSTOM_DOD,
             calculate_reserve_from_dod: CALCULATE_RESERVE_FROM_DOD,
             display_custom_dod_stats: DISPLAY_CUSTOM_DOD_STATS,
+            display_energy_today: DISPLAY_ENERGY_TODAY,
         };
     }
 

@@ -39,3 +39,5 @@ export const DISPLAY_UNITS = {
     WH: "Wh",
     KWH: "kWh",
 }
+
+export const DISPLAY_ENERGY_TODAY = true;

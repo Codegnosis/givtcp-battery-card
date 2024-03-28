@@ -139,6 +139,14 @@ export const DISPLAY_SCHEMA = (defaults: LovelaceCardConfig) => {
                 boolean: {}
             }
         },
+        {
+            name: 'display_energy_today',
+            label: 'Display daily charge/discharge energy data',
+            default: defaults.display_energy_today,
+            selector: {
+                boolean: {}
+            }
+        },
         HEADING_SCHEMA('Icons'),
         {
             name: 'icon_status_charging',
