@@ -25,3 +25,8 @@ export interface GivTcpBatteryStats {
     chargeEnergyToday: GivTcpStats,
     dischargeEnergyToday: GivTcpStats,
 }
+
+export interface GivTcpCheckEntityResult {
+    found: boolean
+    sensor: string
+}

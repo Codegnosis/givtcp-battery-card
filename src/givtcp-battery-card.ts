@@ -40,7 +40,7 @@ import { styleCss } from './style';
 
 import { version } from '../package.json';
 import {ConfigUtils} from "./config-utils";
-import {GivTcpBatteryStats, GivTcpStats} from "./types";
+import {GivTcpBatteryStats, GivTcpCheckEntityResult, GivTcpStats} from "./types";
 
 // This puts your card into the UI card picker dialog
 (window as any).customCards = (window as any).customCards || [];
@@ -286,6 +286,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     states.dischargeRate = this.getGivTcpStats(this._getBatteryDischargeRate.state, this._getBatteryDischargeRate.attributes?.unit_of_measurement);
 
     states.batteryCapacity = this.getGivTcpStats(this._getBatteryCapacityKwhEntity.state, DISPLAY_UNITS.KWH);
+
     states.socEnergy = this.getGivTcpStats(this._getSocKwhEntity.state, this._getSocKwhEntity.attributes?.unit_of_measurement);
 
     states.chargeEnergyToday = this.getGivTcpStats(this._getChargeEnergyTodayEntity.state, this._getChargeEnergyTodayEntity.attributes?.unit_of_measurement);
@@ -636,10 +637,24 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       return html`
         <ha-card>
           <div class="preview">
-            <p>Could not find invertor ${this.config.entity}. Please check your config and ensure you are adding
+            <p>GivTCP Battery Card Could not find invertor ${this.config.entity}. Please check your config and ensure you are adding
             the invertor's serial sensor.</p>
           </div>
         </ha-card>`;
+    }
+
+    // check status of each required sensor
+    const checkEntityStatuses = this._checkSensorsAvailable()
+    for(let i = 0; i < checkEntityStatuses.length; i++) {
+      if(!checkEntityStatuses[i].found) {
+        return html`
+        <ha-card>
+          <div class="preview">
+            <p>GivTCP Battery Card Could not find the required entity ${checkEntityStatuses[i].sensor}. 
+              Please check your HASS entity configurations and ensure it is enabled.</p>
+          </div>
+        </ha-card>`;
+      }
     }
 
     let batteryRateData = html``;
@@ -793,6 +808,40 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
   private get _getDischargeEnergyTodayEntity(): HassEntity {
     return this.hass.states[`sensor.${this._getSensorPrefix}battery_discharge_energy_today_kwh`];
+  }
+
+  private _checkSensorsAvailable(): GivTcpCheckEntityResult[] {
+    const results: GivTcpCheckEntityResult[] = []
+    const sensors: string[] = [
+      `sensor.${this._getSensorPrefix}soc`,
+      `sensor.${this._getSensorPrefix}battery_power`,
+      `sensor.${this._getSensorPrefix}soc_kwh`,
+      `sensor.${this._getSensorPrefix}discharge_power`,
+      `sensor.${this._getSensorPrefix}charge_power`,
+      `sensor.${this._getSensorPrefix}battery_capacity_kwh`,
+      `number.${this._getSensorPrefix}battery_power_reserve`,
+      `number.${this._getSensorPrefix}battery_charge_rate`,
+      `number.${this._getSensorPrefix}battery_discharge_rate`,
+      `sensor.${this._getSensorPrefix}invertor_power`,
+      `sensor.${this._getSensorPrefix}battery_charge_energy_today_kwh`,
+      `sensor.${this._getSensorPrefix}battery_discharge_energy_today_kwh`
+    ]
+
+    for(let i = 0; i < sensors.length; i += 1) {
+      const r: GivTcpCheckEntityResult = {
+        sensor: sensors[i],
+        found: false
+      }
+      try {
+        const s = this.hass.states[sensors[i]]
+        r.found = s !== undefined;
+      } catch(e) {
+        r.found = false
+      }
+      results.push(r)
+    }
+
+    return results
   }
 
   private get _getBatteryStatus(): string {
