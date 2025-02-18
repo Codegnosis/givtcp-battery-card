@@ -9,6 +9,7 @@ import {
     SOC_THRESH_V_HIGH,
     SOC_THRESH_V_HIGH_COLOUR,
     SOC_THRESH_V_LOW_COLOUR,
+    SOC_COLOUR_INPUT,
     DISPLAY_ABS_POWER,
     DISPLAY_TYPE,
     DISPLAY_DP,
@@ -38,6 +39,7 @@ export class ConfigUtils {
             soc_threshold_medium_colour: SOC_THRESH_MED_COLOUR,
             soc_threshold_low_colour: SOC_THRESH_LOW_COLOUR,
             soc_threshold_very_low_colour: SOC_THRESH_V_LOW_COLOUR,
+            soc_colour_input: SOC_COLOUR_INPUT,
             display_abs_power: DISPLAY_ABS_POWER,
             display_type: DISPLAY_TYPE,
             display_dp: DISPLAY_DP,
@@ -63,7 +65,7 @@ export class ConfigUtils {
             enable_debug_output: {
                 newKey: 'DELETE',
                 newVal: null,
-            }
+            },
         };
 
         for (const [oldKey, newConf] of Object.entries(mappings)) {

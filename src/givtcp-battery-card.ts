@@ -26,12 +26,13 @@ import {
   SOC_THRESH_V_HIGH,
   SOC_THRESH_V_HIGH_COLOUR,
   SOC_THRESH_V_LOW_COLOUR,
+  SOC_COLOUR_INPUT,
   DISPLAY_BATTERY_RATES,
   USE_CUSTOM_DOD,
   CUSTOM_DOD,
   CALCULATE_RESERVE_FROM_DOD,
   DISPLAY_CUSTOM_DOD_STATS,
-  DISPLAY_UNITS, DISPLAY_ENERGY_TODAY,
+  DISPLAY_UNITS, DISPLAY_ENERGY_TODAY, SOC_COLOUR_INPUT_TYPES,
 } from "./constants";
 
 import './components/countdown'
@@ -382,8 +383,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
         </div>
       `;
 
-    const pbColour = (this.calculatedStates.batteryPower.value > 0) ? "r" : "g";
-    const cl = `progress-bar-fill-${pbColour}${Math.ceil(this.calculatedStates.batteryUsageRatePercent.value / 10) * 10}`;
+    const pbColour = (this.calculatedStates.batteryPower.value > 0) ? "error" : "success";
 
     return html`
       <div>
@@ -393,7 +393,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
         <div class="status">
           <div class="rate-wrapper">
             <div class="progress-bar">
-              <span class="progress-bar-fill ${cl}" style="width: ${this.calculatedStates.batteryUsageRatePercent.displayStr};"></span>
+              <span class="progress-bar-fill" style="background-color: var(--${pbColour}-color); width: ${this.calculatedStates.batteryUsageRatePercent.displayStr};"></span>
             </div>
           </div>
         </div>
@@ -579,6 +579,8 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
   getBatteryColour(): string {
     const socInt = this.calculatedStates.socPercent.value;
 
+    const socInputType = (this.config?.soc_colour_input) ? this.config.soc_colour_input : SOC_COLOUR_INPUT;
+
     const socVH = (this.config?.soc_threshold_very_high) ? this.config.soc_threshold_very_high : SOC_THRESH_V_HIGH;
     const socH = (this.config?.soc_threshold_high) ? this.config.soc_threshold_high : SOC_THRESH_HIGH;
     const socM = (this.config?.soc_threshold_medium) ? this.config.soc_threshold_medium : SOC_THRESH_MED;
@@ -591,15 +593,15 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     const socVLCol = (this.config?.soc_threshold_very_low_colour) ? this.config.soc_threshold_very_low_colour : SOC_THRESH_V_LOW_COLOUR;
 
     if (socInt >= socVH) {
-      return `${socVHCol[0]}, ${socVHCol[1]}, ${socVHCol[2]}`;
+      return (socInputType === SOC_COLOUR_INPUT_TYPES.THEME_VAR) ? socVHCol : `${socVHCol[0]}, ${socVHCol[1]}, ${socVHCol[2]}`;
     } else if (socInt >= socH) {
-      return `${socHCol[0]}, ${socHCol[1]}, ${socHCol[2]}`;
+      return (socInputType === SOC_COLOUR_INPUT_TYPES.THEME_VAR) ? socHCol : `${socHCol[0]}, ${socHCol[1]}, ${socHCol[2]}`;
     } else if (socInt >= socM) {
-      return `${socMCol[0]}, ${socMCol[1]}, ${socMCol[2]}`;
+      return (socInputType === SOC_COLOUR_INPUT_TYPES.THEME_VAR) ? socMCol : `${socMCol[0]}, ${socMCol[1]}, ${socMCol[2]}`;
     } else if (socInt >= socL) {
-      return `${socLCol[0]}, ${socLCol[1]}, ${socLCol[2]}`;
+      return (socInputType === SOC_COLOUR_INPUT_TYPES.THEME_VAR) ? socLCol : `${socLCol[0]}, ${socLCol[1]}, ${socLCol[2]}`;
     } else {
-      return `${socVLCol[0]}, ${socVLCol[1]}, ${socVLCol[2]}`;
+      return (socInputType === SOC_COLOUR_INPUT_TYPES.THEME_VAR) ? socVLCol : `${socVLCol[0]}, ${socVLCol[1]}, ${socVLCol[2]}`;
     }
   }
 
@@ -662,9 +664,12 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
     this.calculateStats()
 
+    const socInputType = (this.config?.soc_colour_input) ? this.config.soc_colour_input : SOC_COLOUR_INPUT;
     const batteryIcon = this.getBatteryIcon();
     const batteryStatusIcon = this.getBatteryStatusIcon();
     const batteryIconColour = this.getBatteryColour();
+    const batteryIconStyle = (socInputType === SOC_COLOUR_INPUT_TYPES.THEME_VAR) ? `var(${batteryIconColour})` : `rgb(${batteryIconColour})`
+
 
     if(displayBatteryRates) {
       batteryRateData = html`
@@ -701,7 +706,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
                 <div style="margin: auto;">
                   <ha-icon
                       icon="${batteryIcon}"
-                      style="color:rgb(${batteryIconColour});--mdc-icon-size: 100px;"
+                      style="color:${batteryIconStyle};--mdc-icon-size: 100px;"
                   ></ha-icon>
                 </div>
               </div>
