@@ -1,3 +1,5 @@
+import {GivTcpEntityMeta} from "./types";
+
 export const SOC_THRESH_V_HIGH = 80;
 export const SOC_THRESH_V_HIGH_COLOUR = [0, 69, 23]; //#004517
 export const SOC_THRESH_HIGH = 60;
@@ -48,3 +50,54 @@ export const DISPLAY_UNITS = {
 }
 
 export const DISPLAY_ENERGY_TODAY = true;
+
+export const SENSORS_USED: GivTcpEntityMeta[] = [
+    {
+        name: '_soc',
+        type: 'sensor'
+    },
+    {
+        name: '_battery_power',
+        type: 'sensor'
+    },
+    {
+        name: '_soc_kwh',
+        type: 'sensor'
+    },
+    {
+        name: '_discharge_power',
+        type: 'sensor'
+    },
+    {
+        name: '_charge_power',
+        type: 'sensor'
+    },
+    {
+        name: '_battery_capacity_kwh',
+        type: 'sensor'
+    },
+    {
+        name: '_invertor_power',
+        type: 'sensor'
+    },
+    {
+        name: '_battery_charge_energy_today_kwh',
+        type: 'sensor'
+    },
+    {
+        name: '_battery_discharge_energy_today_kwh',
+        type: 'sensor'
+    },
+    {
+        name: '_battery_power_reserve',
+        type: 'number'
+    },
+    {
+        name: '_battery_charge_rate',
+        type: 'number'
+    },
+    {
+        name: '_battery_discharge_rate',
+        type: 'number'
+    },
+]

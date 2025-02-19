@@ -32,7 +32,7 @@ import {
   CUSTOM_DOD,
   CALCULATE_RESERVE_FROM_DOD,
   DISPLAY_CUSTOM_DOD_STATS,
-  DISPLAY_UNITS, DISPLAY_ENERGY_TODAY, SOC_COLOUR_INPUT_TYPES,
+  DISPLAY_UNITS, DISPLAY_ENERGY_TODAY, SOC_COLOUR_INPUT_TYPES, SENSORS_USED,
 } from "./constants";
 
 import './components/countdown'
@@ -134,24 +134,14 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       return true;
     }
 
-    const entitiesToCheck = [
-      '_soc',
-      '_battery_power',
-      '_soc_kwh',
-      '_discharge_power',
-      '_charge_power',
-      '_battery_charge_rate',
-      '_battery_discharge_rate',
-    ];
-
     if (element.config?.entity) {
       const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
       if (oldHass) {
         let hasChanges = false;
-        for (const e of entitiesToCheck) {
+        for (const e of SENSORS_USED) {
+          const eName = `${e.type}.${this._getSensorPrefix?.prefix}${e.name}${this._getSensorPrefix?.suffix}`
           if (
-            oldHass.states[`sensor.${this._getSensorPrefix?.prefix}${e}${this._getSensorPrefix?.suffix}`] !==
-            element.hass?.states[`sensor.${this._getSensorPrefix?.prefix}${e}${this._getSensorPrefix?.suffix}`]
+            oldHass.states[eName] !== element.hass?.states[eName]
           ) {
             hasChanges = true;
           }
@@ -849,31 +839,11 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
   private _checkSensorsAvailable(): GivTcpCheckEntityResult[] {
     const results: GivTcpCheckEntityResult[] = []
-    const sensors: string[] = [
-      `sensor.${this._getSensorPrefix?.prefix}_soc${this._getSensorPrefix?.suffix}`,
-      `sensor.${this._getSensorPrefix?.prefix}_battery_power${this._getSensorPrefix?.suffix}`,
-      `sensor.${this._getSensorPrefix?.prefix}_soc_kwh${this._getSensorPrefix?.suffix}`,
-      `sensor.${this._getSensorPrefix?.prefix}_discharge_power${this._getSensorPrefix?.suffix}`,
-      `sensor.${this._getSensorPrefix?.prefix}_charge_power${this._getSensorPrefix?.suffix}`,
-      `sensor.${this._getSensorPrefix?.prefix}_battery_capacity_kwh${this._getSensorPrefix?.suffix}`,
-      `sensor.${this._getSensorPrefix?.prefix}_invertor_power${this._getSensorPrefix?.suffix}`,
-      `sensor.${this._getSensorPrefix?.prefix}_battery_charge_energy_today_kwh${this._getSensorPrefix?.suffix}`,
-      `sensor.${this._getSensorPrefix?.prefix}_battery_discharge_energy_today_kwh${this._getSensorPrefix?.suffix}`
-    ]
 
-    const numbers: string[] = [
-      `number.${this._getSensorPrefix?.prefix}_battery_power_reserve${this._getSensorPrefix?.suffix}`,
-      `number.${this._getSensorPrefix?.prefix}_battery_charge_rate${this._getSensorPrefix?.suffix}`,
-      `number.${this._getSensorPrefix?.prefix}_battery_discharge_rate${this._getSensorPrefix?.suffix}`,
-    ]
-
-    for(let i = 0; i < sensors.length; i += 1) {
-      const r = this._checkSensorAlive(sensors[i])
-      results.push(r)
-    }
-
-    for(let i = 0; i < numbers.length; i += 1) {
-      const r = this._checkSensorAlive(numbers[i])
+    for(let i = 0; i < SENSORS_USED.length; i += 1) {
+      const s = SENSORS_USED[i]
+      const sensorName = `${s.type}.${this._getSensorPrefix?.prefix}${s.name}${this._getSensorPrefix?.suffix}`
+      const r = this._checkSensorAlive(sensorName)
       results.push(r)
     }
 

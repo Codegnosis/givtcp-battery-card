@@ -36,3 +36,8 @@ export interface GivSensorPrefixSuffix {
     prefix: string
     suffix: string
 }
+
+export interface GivTcpEntityMeta {
+    name: string
+    type: string
+}
