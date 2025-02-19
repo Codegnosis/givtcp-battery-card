@@ -52,6 +52,7 @@ export class ConfigUtils {
             calculate_reserve_from_dod: CALCULATE_RESERVE_FROM_DOD,
             display_custom_dod_stats: DISPLAY_CUSTOM_DOD_STATS,
             display_energy_today: DISPLAY_ENERGY_TODAY,
+            enable_debug_mode: false,
         };
     }
 

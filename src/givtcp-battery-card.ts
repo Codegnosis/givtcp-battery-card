@@ -350,6 +350,13 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       displayUnit: "%",
     }
 
+    const debugEnabled = (this.config?.enable_debug_mode) ? this.config.enable_debug_mode : false;
+
+    if(debugEnabled === true) {
+      // ToDo - comment out for release. Only uncomment for alpha/beta
+      console.log(states)
+    }
+
     this.calculatedStates = states;
   }
 
