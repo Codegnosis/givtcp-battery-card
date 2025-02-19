@@ -53,10 +53,6 @@ export const DISPLAY_ENERGY_TODAY = true;
 
 export const SENSORS_USED: GivTcpEntityMeta[] = [
     {
-        name: '_invertor_serial_number',
-        type: 'sensor'
-    },
-    {
         name: '_soc',
         type: 'sensor'
     },
@@ -78,10 +74,6 @@ export const SENSORS_USED: GivTcpEntityMeta[] = [
     },
     {
         name: '_battery_capacity_kwh',
-        type: 'sensor'
-    },
-    {
-        name: '_invertor_power',
         type: 'sensor'
     },
     {

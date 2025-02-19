@@ -630,6 +630,16 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return 0;
   }
 
+  renderSensorsNotFound(sensorsNotFound: string[]): TemplateResult[] {
+    const notFoundList: TemplateResult[] = [];
+    for(let i = 0; i < sensorsNotFound.length; i += 1) {
+      notFoundList.push(
+          html`<p style="text-align: left; padding-left: 10px;">${sensorsNotFound[i]}</p>`
+      )
+    }
+    return notFoundList;
+  }
+
   // https://lit.dev/docs/components/rendering/
   protected render(): TemplateResult | void {
     if (!this.config?.entity) {
@@ -639,16 +649,23 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     // First check status of each required sensor. If any annot be found/return undefined, then
     // display the error to the user
     const checkEntityStatuses = this._checkSensorsAvailable()
+    const sensorsNotFound: string[] = []
     for(let i = 0; i < checkEntityStatuses.length; i++) {
       if(!checkEntityStatuses[i].found) {
-        return html`
+        sensorsNotFound.push(checkEntityStatuses[i].sensor)
+      }
+    }
+
+    if(sensorsNotFound.length > 0) {
+      return html`
         <ha-card>
           <div class="preview">
-            <p>GivTCP Battery Card Could not find the required entity ${checkEntityStatuses[i].sensor}. 
-              Please check your HASS entity configurations and ensure it is enabled.</p>
+            <p>GivTCP Battery Card Could not find the following required entities. 
+              Please check your HASS entity configurations and ensure they are enabled.</p>
+
+              ${this.renderSensorsNotFound(sensorsNotFound)}
           </div>
         </ha-card>`;
-      }
     }
 
     let batteryRateData = html``;
@@ -754,69 +771,66 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return name.suffix === '' && name.prefix === '' ? undefined : name;
   }
 
-  // private get _getInvertorSerialEntity(): HassEntity {
-  //   return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_invertor_serial_number${this._getSensorPrefix?.suffix}`];
-  // }
+  private _getGivTcpEntity(entType: string, entName: string): HassEntity {
+    const s = `${entType}.${this._getSensorPrefix?.prefix}${entName}${this._getSensorPrefix?.suffix}`
+    return this.hass.states[s];
+  }
 
   private get _getSocEntity(): HassEntity {
-    return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_soc${this._getSensorPrefix?.suffix}`];
+    return this._getGivTcpEntity('sensor', '_soc')
   }
 
   private get _getBatteryPowerEntity(): HassEntity {
     // can be W or kW
-    return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_battery_power${this._getSensorPrefix?.suffix}`];
+    return this._getGivTcpEntity('sensor', '_battery_power')
   }
 
   private get _getSocKwhEntity(): HassEntity {
     // can be Wh or kWh
-    return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_soc_kwh${this._getSensorPrefix?.suffix}`];
+    return this._getGivTcpEntity('sensor', '_soc_kwh')
   }
 
   private get _getDischargePowerEntity(): HassEntity {
     // can be W or kW
-    return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_discharge_power${this._getSensorPrefix?.suffix}`];
+    return this._getGivTcpEntity('sensor', '_discharge_power')
   }
 
   private get _getChargePowerEntity(): HassEntity {
     // can be W or kW
-    return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_charge_power${this._getSensorPrefix?.suffix}`];
+    return this._getGivTcpEntity('sensor', '_charge_power')
   }
 
   private get _getBatteryCapacityKwhEntity(): HassEntity {
-    return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_battery_capacity_kwh${this._getSensorPrefix?.suffix}`];
+    return this._getGivTcpEntity('sensor', '_battery_capacity_kwh')
   }
 
   private get _getBatteryPowerReserve(): HassEntity {
-    return this.hass.states[`number.${this._getSensorPrefix?.prefix}_battery_power_reserve${this._getSensorPrefix?.suffix}`];
+    return this._getGivTcpEntity('number', '_battery_power_reserve')
   }
 
   private get _getBatteryChargeRate(): HassEntity {
-    return this.hass.states[`number.${this._getSensorPrefix?.prefix}_battery_charge_rate${this._getSensorPrefix?.suffix}`];
+    return this._getGivTcpEntity('number', '_battery_charge_rate')
   }
 
   private get _getBatteryDischargeRate(): HassEntity {
-    return this.hass.states[`number.${this._getSensorPrefix?.prefix}_battery_discharge_rate${this._getSensorPrefix?.suffix}`];
+    return this._getGivTcpEntity('number', '_battery_discharge_rate')
   }
 
-  // private get _getInvertorPower(): HassEntity {
-  //   return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_invertor_power${this._getSensorPrefix?.suffix}`];
-  // }
-
   private get _getChargeEnergyTodayEntity(): HassEntity {
-    return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_battery_charge_energy_today_kwh${this._getSensorPrefix?.suffix}`];
+    return this._getGivTcpEntity('sensor', '_battery_charge_energy_today_kwh')
   }
 
   private get _getDischargeEnergyTodayEntity(): HassEntity {
-    return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_battery_discharge_energy_today_kwh${this._getSensorPrefix?.suffix}`];
+    return this._getGivTcpEntity('sensor', '_battery_discharge_energy_today_kwh')
   }
 
-  private _checkSensorAlive(sensorName: string): GivTcpCheckEntityResult {
+  private _checkSensorAlive(entType: string, entName: string): GivTcpCheckEntityResult {
     const r: GivTcpCheckEntityResult = {
-      sensor: sensorName,
+      sensor: `${entType}.${this._getSensorPrefix?.prefix}${entName}${this._getSensorPrefix?.suffix}`,
       found: false
     }
     try {
-      const s = this.hass.states[sensorName]
+      const s = this._getGivTcpEntity(entType, entName)
       r.found = s !== undefined;
     } catch(e) {
       r.found = false
@@ -830,8 +844,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
     for(let i = 0; i < SENSORS_USED.length; i += 1) {
       const s = SENSORS_USED[i]
-      const sensorName = `${s.type}.${this._getSensorPrefix?.prefix}${s.name}${this._getSensorPrefix?.suffix}`
-      const r = this._checkSensorAlive(sensorName)
+      const r = this._checkSensorAlive(s.type, s.name)
       results.push(r)
     }
 
