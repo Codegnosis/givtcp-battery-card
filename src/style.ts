@@ -158,11 +158,11 @@ export const styleCss = css`
   }
 
   .battery-power-out {
-    color: #db4437;
+    color: var(--error-color);
   }
 
   .battery-power-in {
-    color: #43a047;
+    color: var(--success-color);
   }
 
   .rate-wrapper {
