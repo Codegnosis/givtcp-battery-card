@@ -1,5 +1,5 @@
 import {LovelaceCardConfig} from "custom-card-helpers";
-import {DISPLAY_TYPE_OPTIONS} from "./constants";
+import {DISPLAY_TYPE_OPTIONS, SOC_COLOUR_INPUT_TYPES} from "./constants";
 
 export const GENERAL_SCHEMA = (invertorList: string[], defaults: LovelaceCardConfig) => {
 
@@ -35,7 +35,48 @@ const HEADING_SCHEMA = (label: string) => {
     }
 }
 
-const THRESHOLD_SCHEMA = (name: string, defaultThreshold: number, defaultColour: number[]) => {
+const COLOUR_INPUT_TYPE_SCHEMA = (defaults: LovelaceCardConfig) => {
+    return {
+        name: 'soc_colour_input',
+        label: 'Colour Input Type',
+        default: defaults.soc_colour_input,
+        selector: {
+            select: {
+                options: [
+                    { value: SOC_COLOUR_INPUT_TYPES.RGB_PICKER, label: 'RGB Colour Picker' },
+                    { value: SOC_COLOUR_INPUT_TYPES.THEME_VAR, label: 'Theme Variable (e.g. "--success-color")' },
+                ],
+            },
+        }
+    };
+}
+
+const SOC_RGB_PICKER_SCHEMA = (name: string, defaultColour: number[]) => {
+    return {
+        name: `soc_threshold_${name}_colour`,
+        label: 'Colour',
+        default: defaultColour,
+        selector: {
+            color_rgb: {}
+        }
+    }
+}
+
+const SOC_THEME_VAR_SCHEMA = (name: string) => {
+    return {
+        name: `soc_threshold_${name}_colour`,
+        label: 'Colour',
+        default: '--success-color',
+        selector: {
+            text: {}
+        }
+    }
+}
+
+const THRESHOLD_SCHEMA = (name: string, defaultThreshold: number, defaultColour: number[], currentSocColourInput: string) => {
+
+    const colourSchema = (currentSocColourInput === SOC_COLOUR_INPUT_TYPES.THEME_VAR) ? SOC_THEME_VAR_SCHEMA(name) : SOC_RGB_PICKER_SCHEMA(name, defaultColour)
+
     return {
         type: 'grid',
         schema: [
@@ -52,39 +93,28 @@ const THRESHOLD_SCHEMA = (name: string, defaultThreshold: number, defaultColour:
                     }
                 }
             },
-            {
-                name: `soc_threshold_${name}_colour`,
-                label: 'Colour',
-                default: defaultColour,
-                selector: {
-                    color_rgb: {}
-                }
-            },
+            colourSchema,
         ],
     }
 }
 
 export const SOC_SCHEMA = (defaults: LovelaceCardConfig, config: LovelaceCardConfig) => {
 
+    const colourSchema = (config.soc_colour_input === SOC_COLOUR_INPUT_TYPES.THEME_VAR) ? SOC_THEME_VAR_SCHEMA('very_low') : SOC_RGB_PICKER_SCHEMA('very_low', defaults.soc_threshold_very_low_colour)
+
     return [
         HEADING_SCHEMA('SOC Thresholds & Colours for Battery Icon'),
+        COLOUR_INPUT_TYPE_SCHEMA(defaults),
         HEADING_SCHEMA('Very High'),
-        THRESHOLD_SCHEMA('very_high', defaults.soc_threshold_very_high, defaults.soc_threshold_very_high_colour),
+        THRESHOLD_SCHEMA('very_high', defaults.soc_threshold_very_high, defaults.soc_threshold_very_high_colour, config.soc_colour_input || defaults.soc_colour_input),
         HEADING_SCHEMA('High'),
-        THRESHOLD_SCHEMA('high', defaults.soc_threshold_high, defaults.soc_threshold_high_colour),
+        THRESHOLD_SCHEMA('high', defaults.soc_threshold_high, defaults.soc_threshold_high_colour, config.soc_colour_input || defaults.soc_colour_input),
         HEADING_SCHEMA('Medium'),
-        THRESHOLD_SCHEMA('medium', defaults.soc_threshold_medium, defaults.soc_threshold_medium_colour),
+        THRESHOLD_SCHEMA('medium', defaults.soc_threshold_medium, defaults.soc_threshold_medium_colour, config.soc_colour_input || defaults.soc_colour_input),
         HEADING_SCHEMA('Low'),
-        THRESHOLD_SCHEMA('low', defaults.soc_threshold_low, defaults.soc_threshold_low_colour),
+        THRESHOLD_SCHEMA('low', defaults.soc_threshold_low, defaults.soc_threshold_low_colour, config.soc_colour_input || defaults.soc_colour_input),
         HEADING_SCHEMA(`Very Low (< ${config.soc_threshold_low || defaults.soc_threshold_low}%)`),
-        {
-            name: 'soc_threshold_very_low_colour',
-            label: 'Colour',
-            default: defaults.soc_threshold_very_low_colour,
-            selector: {
-                color_rgb: {}
-            }
-        },
+        colourSchema,
     ];
 }
 

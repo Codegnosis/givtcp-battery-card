@@ -8,6 +8,13 @@ export const SOC_THRESH_LOW = 20;
 export const SOC_THRESH_LOW_COLOUR = [219, 68, 55]; //#db4437
 export const SOC_THRESH_V_LOW_COLOUR = [94, 0, 0]; //#5e0000
 
+export const SOC_COLOUR_INPUT_TYPES = {
+    RGB_PICKER: "rgb_picker",
+    THEME_VAR: "theme_var"
+}
+
+export const SOC_COLOUR_INPUT = SOC_COLOUR_INPUT_TYPES.RGB_PICKER
+
 export const DISPLAY_ABS_POWER = false;
 
 export enum DISPLAY_TYPE_OPTIONS {
