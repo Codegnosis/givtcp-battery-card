@@ -41,7 +41,7 @@ import { styleCss } from './style';
 
 import { version } from '../package.json';
 import {ConfigUtils} from "./config-utils";
-import {GivTcpBatteryStats, GivTcpCheckEntityResult, GivTcpStats} from "./types";
+import {GivSensorPrefixSuffix, GivTcpBatteryStats, GivTcpCheckEntityResult, GivTcpStats} from "./types";
 
 // This puts your card into the UI card picker dialog
 (window as any).customCards = (window as any).customCards || [];
@@ -135,13 +135,13 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     }
 
     const entitiesToCheck = [
-      'soc',
-      'battery_power',
-      'soc_kwh',
-      'discharge_power',
-      'charge_power',
-      'battery_charge_rate',
-      'battery_discharge_rate',
+      '_soc',
+      '_battery_power',
+      '_soc_kwh',
+      '_discharge_power',
+      '_charge_power',
+      '_battery_charge_rate',
+      '_battery_discharge_rate',
     ];
 
     if (element.config?.entity) {
@@ -150,8 +150,8 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
         let hasChanges = false;
         for (const e of entitiesToCheck) {
           if (
-            oldHass.states[`sensor.${this._getSensorPrefix}${e}`] !==
-            element.hass?.states[`sensor.${this._getSensorPrefix}${e}`]
+            oldHass.states[`sensor.${this._getSensorPrefix?.prefix}${e}${this._getSensorPrefix?.suffix}`] !==
+            element.hass?.states[`sensor.${this._getSensorPrefix?.prefix}${e}${this._getSensorPrefix?.suffix}`]
           ) {
             hasChanges = true;
           }
@@ -184,6 +184,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     const s = entity.state
     const uom = entity.attributes?.unit_of_measurement;
     return {
+      source: entity.entity_id,
       rawState: s,
       uom: uom,
       value: parseInt(s, 10),
@@ -222,7 +223,18 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return (uom === DISPLAY_UNITS.W || uom === DISPLAY_UNITS.KW);
   }
 
-  getGivTcpStats(state: string, uomRaw: string | undefined): GivTcpStats {
+  getGivTcpStats(entityOrValue: HassEntity | string, uomRaw: string | undefined): GivTcpStats {
+
+    let state = ""
+    let source = ""
+    if(typeof entityOrValue === "string") {
+      state = entityOrValue
+      source = "calculated"
+    } else {
+      state = entityOrValue.state
+      source = entityOrValue.entity_id
+    }
+
     const displayType = (this.config.display_type !== undefined) ? this.config.display_type : DISPLAY_TYPE;
     const displayAbsPower = (this.config.display_abs_power !== undefined) ? this.config.display_abs_power : DISPLAY_ABS_POWER;
     const dp = this.getDp();
@@ -261,6 +273,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     }
 
     return {
+      source: source,
       rawState: state,
       uom: uom,
       value: value,
@@ -280,18 +293,18 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
     states.socPercent = this.getPercentageStats(this._getSocEntity);
     states.batteryPowerReservePercent = this.getPercentageStats(this._getBatteryPowerReserve);
-    states.batteryPower = this.getGivTcpStats(this._getBatteryPowerEntity.state, this._getBatteryPowerEntity.attributes?.unit_of_measurement);
-    states.dischargePower = this.getGivTcpStats(this._getDischargePowerEntity.state, this._getDischargePowerEntity.attributes?.unit_of_measurement);
-    states.chargePower = this.getGivTcpStats(this._getChargePowerEntity.state, this._getChargePowerEntity.attributes?.unit_of_measurement);
-    states.chargeRate = this.getGivTcpStats(this._getBatteryChargeRate.state, this._getBatteryChargeRate.attributes?.unit_of_measurement);
-    states.dischargeRate = this.getGivTcpStats(this._getBatteryDischargeRate.state, this._getBatteryDischargeRate.attributes?.unit_of_measurement);
+    states.batteryPower = this.getGivTcpStats(this._getBatteryPowerEntity, this._getBatteryPowerEntity.attributes?.unit_of_measurement);
+    states.dischargePower = this.getGivTcpStats(this._getDischargePowerEntity, this._getDischargePowerEntity.attributes?.unit_of_measurement);
+    states.chargePower = this.getGivTcpStats(this._getChargePowerEntity, this._getChargePowerEntity.attributes?.unit_of_measurement);
+    states.chargeRate = this.getGivTcpStats(this._getBatteryChargeRate, this._getBatteryChargeRate.attributes?.unit_of_measurement);
+    states.dischargeRate = this.getGivTcpStats(this._getBatteryDischargeRate, this._getBatteryDischargeRate.attributes?.unit_of_measurement);
 
-    states.batteryCapacity = this.getGivTcpStats(this._getBatteryCapacityKwhEntity.state, DISPLAY_UNITS.KWH);
+    states.batteryCapacity = this.getGivTcpStats(this._getBatteryCapacityKwhEntity, DISPLAY_UNITS.KWH);
 
-    states.socEnergy = this.getGivTcpStats(this._getSocKwhEntity.state, this._getSocKwhEntity.attributes?.unit_of_measurement);
+    states.socEnergy = this.getGivTcpStats(this._getSocKwhEntity, this._getSocKwhEntity.attributes?.unit_of_measurement);
 
-    states.chargeEnergyToday = this.getGivTcpStats(this._getChargeEnergyTodayEntity.state, this._getChargeEnergyTodayEntity.attributes?.unit_of_measurement);
-    states.dischargeEnergyToday = this.getGivTcpStats(this._getDischargeEnergyTodayEntity.state, this._getDischargeEnergyTodayEntity.attributes?.unit_of_measurement);
+    states.chargeEnergyToday = this.getGivTcpStats(this._getChargeEnergyTodayEntity, this._getChargeEnergyTodayEntity.attributes?.unit_of_measurement);
+    states.dischargeEnergyToday = this.getGivTcpStats(this._getDischargeEnergyTodayEntity, this._getDischargeEnergyTodayEntity.attributes?.unit_of_measurement);
 
     // post process DOD
     let dod = (useCustomDod) ? Math.abs(parseFloat(customDod)) / 100.0 : 1.0;
@@ -337,6 +350,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     dispPerc = this.roundPercentage(perc, ((perc < 0.1) ? 2 : 1));
 
     states.batteryUsageRatePercent = {
+      source: "calculated",
       rawState: perc.toString(),
       uom: "%",
       value: perc,
@@ -438,7 +452,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       <div 
           class="icon-subtitle-small"
           id="gtpc-battery-detail-battery-power"
-          data-entity-id="${`sensor.${this._getSensorPrefix}battery_power`}"
+          data-entity-id="${`sensor.${this._getSensorPrefix?.prefix}_battery_power${this._getSensorPrefix?.suffix}`}"
       >
         ${powerSubtitle}
         <span class="${powerColourClass}">
@@ -690,7 +704,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
           <div class="stats-wrapper">
             <div
-                data-entity-id="${`sensor.${this._getSensorPrefix}soc`}"
+                data-entity-id="${`sensor.${this._getSensorPrefix?.prefix}_soc${this._getSensorPrefix?.suffix}`}"
                 id="gtpc-battery-detail-soc-icon"
                 class="stats-col"
             >
@@ -717,14 +731,14 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
               <span class="icon-info">
                 <span 
                     class="icon-title"
-                    data-entity-id="${`sensor.${this._getSensorPrefix}soc`}"
+                    data-entity-id="${`sensor.${this._getSensorPrefix?.prefix}_soc${this._getSensorPrefix?.suffix}`}"
                     id="gtpc-battery-detail-soc-text"
                 > 
                   ${this.calculatedStates.socPercent.displayStr} 
                 </span>
                 <span 
                     class="icon-subtitle"
-                    data-entity-id="${`sensor.${this._getSensorPrefix}soc_kwh`}"
+                    data-entity-id="${`sensor.${this._getSensorPrefix?.prefix}_soc_kwh${this._getSensorPrefix?.suffix}`}"
                     id="gtpc-battery-detail-soc-kwh-text"
                 > 
                   ${this.calculatedStates.calculatedSocEnergy.displayStr} 
@@ -747,102 +761,119 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     `;
   }
 
-  private get _getSensorPrefix(): string {
-    let prefix = '';
-    let suffix = '';
+  private get _getSensorPrefix(): GivSensorPrefixSuffix | undefined {
+    const name = { prefix: '', suffix: '' };
     const prefixMatch = /sensor\.([\w]+)_invertor_serial_number/g.exec(this.config.entity);
     if (prefixMatch) {
-      prefix = prefixMatch[1];
+      name.prefix = prefixMatch[1];
     }
 
     const suffixMatch = /sensor\.[\w]+_invertor_serial_number_(\d+)/g.exec(this.config.entity);
     if (suffixMatch) {
-      suffix = '_' + suffixMatch[1];
+      name.suffix = '_' + suffixMatch[1];
     }
 
-    return `${prefix}_${suffix}`;
+    return name.suffix === '' && name.prefix === '' ? undefined : name;
   }
 
+  // private get _getInvertorSerialEntity(): HassEntity {
+  //   return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_invertor_serial_number${this._getSensorPrefix?.suffix}`];
+  // }
+
   private get _getSocEntity(): HassEntity {
-    return this.hass.states[`sensor.${this._getSensorPrefix}soc`];
+    return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_soc${this._getSensorPrefix?.suffix}`];
   }
 
   private get _getBatteryPowerEntity(): HassEntity {
     // can be W or kW
-    return this.hass.states[`sensor.${this._getSensorPrefix}battery_power`];
+    return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_battery_power${this._getSensorPrefix?.suffix}`];
   }
 
   private get _getSocKwhEntity(): HassEntity {
     // can be Wh or kWh
-    return this.hass.states[`sensor.${this._getSensorPrefix}soc_kwh`];
+    return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_soc_kwh${this._getSensorPrefix?.suffix}`];
   }
 
   private get _getDischargePowerEntity(): HassEntity {
     // can be W or kW
-    return this.hass.states[`sensor.${this._getSensorPrefix}discharge_power`];
+    return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_discharge_power${this._getSensorPrefix?.suffix}`];
   }
 
   private get _getChargePowerEntity(): HassEntity {
     // can be W or kW
-    return this.hass.states[`sensor.${this._getSensorPrefix}charge_power`];
+    return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_charge_power${this._getSensorPrefix?.suffix}`];
   }
 
   private get _getBatteryCapacityKwhEntity(): HassEntity {
-    return this.hass.states[`sensor.${this._getSensorPrefix}battery_capacity_kwh`];
+    return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_battery_capacity_kwh${this._getSensorPrefix?.suffix}`];
   }
 
   private get _getBatteryPowerReserve(): HassEntity {
-    return this.hass.states[`number.${this._getSensorPrefix}battery_power_reserve`];
+    return this.hass.states[`number.${this._getSensorPrefix?.prefix}_battery_power_reserve${this._getSensorPrefix?.suffix}`];
   }
 
   private get _getBatteryChargeRate(): HassEntity {
-    return this.hass.states[`number.${this._getSensorPrefix}battery_charge_rate`];
+    return this.hass.states[`number.${this._getSensorPrefix?.prefix}_battery_charge_rate${this._getSensorPrefix?.suffix}`];
   }
 
   private get _getBatteryDischargeRate(): HassEntity {
-    return this.hass.states[`number.${this._getSensorPrefix}battery_discharge_rate`];
+    return this.hass.states[`number.${this._getSensorPrefix?.prefix}_battery_discharge_rate${this._getSensorPrefix?.suffix}`];
   }
 
   private get _getInvertorPower(): HassEntity {
-    return this.hass.states[`sensor.${this._getSensorPrefix}invertor_power`];
+    return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_invertor_power${this._getSensorPrefix?.suffix}`];
   }
 
   private get _getChargeEnergyTodayEntity(): HassEntity {
-    return this.hass.states[`sensor.${this._getSensorPrefix}battery_charge_energy_today_kwh`];
+    return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_battery_charge_energy_today_kwh${this._getSensorPrefix?.suffix}`];
   }
 
   private get _getDischargeEnergyTodayEntity(): HassEntity {
-    return this.hass.states[`sensor.${this._getSensorPrefix}battery_discharge_energy_today_kwh`];
+    return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_battery_discharge_energy_today_kwh${this._getSensorPrefix?.suffix}`];
+  }
+
+  private _checkSensorAlive(sensorName: string): GivTcpCheckEntityResult {
+    const r: GivTcpCheckEntityResult = {
+      sensor: sensorName,
+      found: false
+    }
+    try {
+      const s = this.hass.states[sensorName]
+      r.found = s !== undefined;
+    } catch(e) {
+      r.found = false
+    }
+
+    return r
   }
 
   private _checkSensorsAvailable(): GivTcpCheckEntityResult[] {
     const results: GivTcpCheckEntityResult[] = []
     const sensors: string[] = [
-      `sensor.${this._getSensorPrefix}soc`,
-      `sensor.${this._getSensorPrefix}battery_power`,
-      `sensor.${this._getSensorPrefix}soc_kwh`,
-      `sensor.${this._getSensorPrefix}discharge_power`,
-      `sensor.${this._getSensorPrefix}charge_power`,
-      `sensor.${this._getSensorPrefix}battery_capacity_kwh`,
-      `number.${this._getSensorPrefix}battery_power_reserve`,
-      `number.${this._getSensorPrefix}battery_charge_rate`,
-      `number.${this._getSensorPrefix}battery_discharge_rate`,
-      `sensor.${this._getSensorPrefix}invertor_power`,
-      `sensor.${this._getSensorPrefix}battery_charge_energy_today_kwh`,
-      `sensor.${this._getSensorPrefix}battery_discharge_energy_today_kwh`
+      `sensor.${this._getSensorPrefix?.prefix}_soc${this._getSensorPrefix?.suffix}`,
+      `sensor.${this._getSensorPrefix?.prefix}_battery_power${this._getSensorPrefix?.suffix}`,
+      `sensor.${this._getSensorPrefix?.prefix}_soc_kwh${this._getSensorPrefix?.suffix}`,
+      `sensor.${this._getSensorPrefix?.prefix}_discharge_power${this._getSensorPrefix?.suffix}`,
+      `sensor.${this._getSensorPrefix?.prefix}_charge_power${this._getSensorPrefix?.suffix}`,
+      `sensor.${this._getSensorPrefix?.prefix}_battery_capacity_kwh${this._getSensorPrefix?.suffix}`,
+      `sensor.${this._getSensorPrefix?.prefix}_invertor_power${this._getSensorPrefix?.suffix}`,
+      `sensor.${this._getSensorPrefix?.prefix}_battery_charge_energy_today_kwh${this._getSensorPrefix?.suffix}`,
+      `sensor.${this._getSensorPrefix?.prefix}_battery_discharge_energy_today_kwh${this._getSensorPrefix?.suffix}`
+    ]
+
+    const numbers: string[] = [
+      `number.${this._getSensorPrefix?.prefix}_battery_power_reserve${this._getSensorPrefix?.suffix}`,
+      `number.${this._getSensorPrefix?.prefix}_battery_charge_rate${this._getSensorPrefix?.suffix}`,
+      `number.${this._getSensorPrefix?.prefix}_battery_discharge_rate${this._getSensorPrefix?.suffix}`,
     ]
 
     for(let i = 0; i < sensors.length; i += 1) {
-      const r: GivTcpCheckEntityResult = {
-        sensor: sensors[i],
-        found: false
-      }
-      try {
-        const s = this.hass.states[sensors[i]]
-        r.found = s !== undefined;
-      } catch(e) {
-        r.found = false
-      }
+      const r = this._checkSensorAlive(sensors[i])
+      results.push(r)
+    }
+
+    for(let i = 0; i < numbers.length; i += 1) {
+      const r = this._checkSensorAlive(numbers[i])
       results.push(r)
     }
 

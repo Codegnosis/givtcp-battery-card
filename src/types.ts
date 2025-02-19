@@ -1,4 +1,5 @@
 export interface GivTcpStats {
+    source: string,
     rawState: string, // store raw value from GivTCP
     uom: string | undefined, // unit_of_measurement from GivTCP
     value: number,
@@ -29,4 +30,9 @@ export interface GivTcpBatteryStats {
 export interface GivTcpCheckEntityResult {
     found: boolean
     sensor: string
+}
+
+export interface GivSensorPrefixSuffix {
+    prefix: string
+    suffix: string
 }
