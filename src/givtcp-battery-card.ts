@@ -636,20 +636,8 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       return html``;
     }
 
-    // first check it's actually in invertor. Checking for the invertor_power entity should suffice
-    // as currently GivTCP only creates this entity for invertors
-    const invertorExists = this._getInvertorPower
-    if(invertorExists === undefined) {
-      return html`
-        <ha-card>
-          <div class="preview">
-            <p>GivTCP Battery Card Could not find invertor ${this.config.entity}. Please check your config and ensure you are adding
-            the invertor's serial sensor.</p>
-          </div>
-        </ha-card>`;
-    }
-
-    // check status of each required sensor
+    // First check status of each required sensor. If any annot be found/return undefined, then
+    // display the error to the user
     const checkEntityStatuses = this._checkSensorsAvailable()
     for(let i = 0; i < checkEntityStatuses.length; i++) {
       if(!checkEntityStatuses[i].found) {
@@ -810,9 +798,9 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return this.hass.states[`number.${this._getSensorPrefix?.prefix}_battery_discharge_rate${this._getSensorPrefix?.suffix}`];
   }
 
-  private get _getInvertorPower(): HassEntity {
-    return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_invertor_power${this._getSensorPrefix?.suffix}`];
-  }
+  // private get _getInvertorPower(): HassEntity {
+  //   return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_invertor_power${this._getSensorPrefix?.suffix}`];
+  // }
 
   private get _getChargeEnergyTodayEntity(): HassEntity {
     return this.hass.states[`sensor.${this._getSensorPrefix?.prefix}_battery_charge_energy_today_kwh${this._getSensorPrefix?.suffix}`];
