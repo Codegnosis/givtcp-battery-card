@@ -32,7 +32,7 @@ import {
   CUSTOM_DOD,
   CALCULATE_RESERVE_FROM_DOD,
   DISPLAY_CUSTOM_DOD_STATS,
-  DISPLAY_UNITS, DISPLAY_ENERGY_TODAY, SOC_COLOUR_INPUT_TYPES, SENSORS_USED,
+  DISPLAY_UNITS, DISPLAY_ENERGY_TODAY, SOC_COLOUR_INPUT_TYPES, SENSORS_USED, TRICKLE_CHARGE_THROTTLE_THRESHOLD,
 } from "./constants";
 
 import './components/countdown'
@@ -274,6 +274,38 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     }
   }
 
+  postProcessBatteryPowerStates(states: GivTcpBatteryStats): GivTcpBatteryStats {
+
+    const useTrickleThrottle = (this.config.trickle_charge_throttle !== undefined) ? this.config.trickle_charge_throttle : false;
+    const limit = (this.config.trickle_charge_throttle_threshold !== undefined) ? this.config.trickle_charge_throttle_threshold : TRICKLE_CHARGE_THROTTLE_THRESHOLD;
+
+    // if the user has enabled trickle throttle, and current battery power is < the limit, set
+    // values to zero. However, retain the raw state value for reference/debugging
+    if(useTrickleThrottle === true && Math.abs(states.batteryPower.value) < limit) {
+      states.batteryPower.value = 0
+      states.batteryPower.kValue = 0
+      states.batteryPower.display = 0
+      states.batteryPower.displayStr = `0${states.batteryPower.displayUnit}`
+
+      states.chargePower.value = 0
+      states.chargePower.kValue = 0
+      states.chargePower.display = 0
+      states.chargePower.displayStr = `0${states.chargePower.displayUnit}`
+
+      states.dischargePower.value = 0
+      states.dischargePower.kValue = 0
+      states.dischargePower.display = 0
+      states.dischargePower.displayStr = `0${states.dischargePower.displayUnit}`
+
+      states.batteryUsageRatePercent.value = 0
+      states.batteryUsageRatePercent.kValue = 0
+      states.batteryUsageRatePercent.display = 0
+      states.batteryUsageRatePercent.displayStr = `0${states.batteryUsageRatePercent.displayUnit}`
+    }
+
+    return states
+  }
+
   calculateStats(): void {
     const useCustomDod = (this.config.use_custom_dod !== undefined) ? this.config.use_custom_dod : USE_CUSTOM_DOD;
     const customDod = (this.config.custom_dod !== undefined) ? this.config.custom_dod : CUSTOM_DOD;
@@ -318,46 +350,46 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     states.batteryPowerReserveEnergy = this.getGivTcpStats(batteryPowerReserveEnergyWh.toString(), DISPLAY_UNITS.WH);
 
     // Usage charge/discharge as % of rates
-    let perc = 0;
-    let dispPerc = 0;
-    let p = 0;
-    let r = 0;
+    let percentage = 0;
+    let dispPercentage = 0;
+    let power = 0;
+    let rate = 0;
 
     if (states.batteryPower.value > 0) {
-      p = states.dischargePower.value
-      r = states.dischargeRate.value
+      power = states.dischargePower.value
+      rate = states.dischargeRate.value
     }
 
     if (states.batteryPower.value < 0) {
-      p = states.chargePower.value
-      r = states.chargeRate.value
+      power = states.chargePower.value
+      rate = states.chargeRate.value
     }
 
-    if(p > 0 && r > 0) {
-      perc = (p / r) * 100;
+    if(power > 0 && rate > 0) {
+      percentage = (power / rate) * 100;
     }
 
-    dispPerc = this.roundPercentage(perc, ((perc < 0.1) ? 2 : 1));
+    dispPercentage = this.roundPercentage(percentage, ((percentage < 0.1) ? 2 : 1));
 
     states.batteryUsageRatePercent = {
       source: "calculated",
-      rawState: perc.toString(),
+      rawState: percentage.toString(),
       uom: "%",
-      value: perc,
-      kValue: perc,
-      display: (dispPerc > 100) ? 100 : dispPerc,
-      displayStr: `${(dispPerc > 100) ? 100 : dispPerc}%`,
+      value: percentage,
+      kValue: percentage,
+      display: (dispPercentage > 100) ? 100 : dispPercentage,
+      displayStr: `${(dispPercentage > 100) ? 100 : dispPercentage}%`,
       displayUnit: "%",
     }
 
     const debugEnabled = (this.config?.enable_debug_mode) ? this.config.enable_debug_mode : false;
 
+    this.calculatedStates = this.postProcessBatteryPowerStates(states);
+
     if(debugEnabled === true) {
       // ToDo - comment out for release. Only uncomment for alpha/beta
-      console.log(states)
+      console.log(this.calculatedStates)
     }
-
-    this.calculatedStates = states;
   }
 
   renderReserveAndCapacity(): TemplateResult {

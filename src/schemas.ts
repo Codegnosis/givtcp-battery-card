@@ -254,3 +254,38 @@ export const DOD_SCHEMA = (defaults: LovelaceCardConfig, config: LovelaceCardCon
     }
     return settings;
 }
+
+export const TRICKLE_CHARGE_SCHEMA = (defaults: LovelaceCardConfig, config: LovelaceCardConfig) => {
+    let settings: object[] = [
+        HEADING_SCHEMA('Throttle Trickle Charge (if battery charge/discharge power < throttle it will be displayed as zero)'),
+        {
+            name: 'trickle_charge_throttle',
+            label: 'Use Throttle',
+            default: defaults.trickle_charge_throttle,
+            selector: {
+                boolean: {}
+            }
+        },
+    ];
+
+    if (config.trickle_charge_throttle) {
+        settings = [
+            ...settings,
+            {
+                name: 'trickle_charge_throttle_threshold',
+                label: 'Throttle Threshold',
+                default: defaults.trickle_charge_throttle_threshold,
+                selector: {
+                    number: {
+                        min: 0,
+                        max: 50,
+                        step: 1,
+                        unit_of_measurement: "W",
+                    }
+                }
+            },
+        ];
+    }
+
+    return settings;
+}

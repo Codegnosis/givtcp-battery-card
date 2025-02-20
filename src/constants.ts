@@ -49,6 +49,8 @@ export const DISPLAY_UNITS = {
     KWH: "kWh",
 }
 
+export const TRICKLE_CHARGE_THROTTLE_THRESHOLD = 25
+
 export const DISPLAY_ENERGY_TODAY = true;
 
 export const SENSORS_USED: GivTcpEntityMeta[] = [
