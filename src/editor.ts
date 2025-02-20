@@ -64,7 +64,7 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
           <paper-tab>SOC</paper-tab>
           <paper-tab>Display</paper-tab>
           <paper-tab>DOD</paper-tab>
-          <paper-tab>Trickle</paper-tab>
+          <paper-tab>Filters</paper-tab>
         </ha-tabs>
         <ha-form
           .hass=${this.hass}

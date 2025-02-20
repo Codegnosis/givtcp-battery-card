@@ -23,7 +23,7 @@ import {
     CALCULATE_RESERVE_FROM_DOD,
     DISPLAY_CUSTOM_DOD_STATS,
     DISPLAY_ENERGY_TODAY,
-    TRICKLE_CHARGE_THROTTLE_THRESHOLD,
+    TRICKLE_CHARGE_FILTER_THRESHOLD,
 } from "./constants";
 
 export class ConfigUtils {
@@ -54,8 +54,8 @@ export class ConfigUtils {
             display_custom_dod_stats: DISPLAY_CUSTOM_DOD_STATS,
             display_energy_today: DISPLAY_ENERGY_TODAY,
             enable_debug_mode: false,
-            trickle_charge_throttle: false,
-            trickle_charge_throttle_threshold: TRICKLE_CHARGE_THROTTLE_THRESHOLD,
+            trickle_charge_filter: false,
+            trickle_charge_filter_threshold: TRICKLE_CHARGE_FILTER_THRESHOLD,
         };
     }
 

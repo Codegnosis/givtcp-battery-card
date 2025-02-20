@@ -32,7 +32,10 @@ import {
   CUSTOM_DOD,
   CALCULATE_RESERVE_FROM_DOD,
   DISPLAY_CUSTOM_DOD_STATS,
-  DISPLAY_UNITS, DISPLAY_ENERGY_TODAY, SOC_COLOUR_INPUT_TYPES, SENSORS_USED, TRICKLE_CHARGE_THROTTLE_THRESHOLD,
+  DISPLAY_UNITS, DISPLAY_ENERGY_TODAY,
+  SOC_COLOUR_INPUT_TYPES,
+  SENSORS_USED,
+  TRICKLE_CHARGE_FILTER_THRESHOLD,
 } from "./constants";
 
 import './components/countdown'
@@ -276,12 +279,12 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
   postProcessBatteryPowerStates(states: GivTcpBatteryStats): GivTcpBatteryStats {
 
-    const useTrickleThrottle = (this.config.trickle_charge_throttle !== undefined) ? this.config.trickle_charge_throttle : false;
-    const limit = (this.config.trickle_charge_throttle_threshold !== undefined) ? this.config.trickle_charge_throttle_threshold : TRICKLE_CHARGE_THROTTLE_THRESHOLD;
+    const useTrickleFilter = (this.config.trickle_charge_filter !== undefined) ? this.config.trickle_charge_filter : false;
+    const limit = (this.config.trickle_charge_filter_threshold !== undefined) ? this.config.trickle_charge_filter_threshold : TRICKLE_CHARGE_FILTER_THRESHOLD;
 
-    // if the user has enabled trickle throttle, and current battery power is < the limit, set
+    // if the user has enabled trickle filter, and current battery power is < the limit, set
     // values to zero. However, retain the raw state value for reference/debugging
-    if(useTrickleThrottle === true && Math.abs(states.batteryPower.value) < limit) {
+    if(useTrickleFilter === true && Math.abs(states.batteryPower.value) < limit) {
       states.batteryPower.value = 0
       states.batteryPower.kValue = 0
       states.batteryPower.display = 0
@@ -388,7 +391,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
     if(debugEnabled === true) {
       // ToDo - comment out for release. Only uncomment for alpha/beta
-      console.log(this.calculatedStates)
+      // console.log(this.calculatedStates)
     }
   }
 

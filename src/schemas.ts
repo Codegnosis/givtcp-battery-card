@@ -257,24 +257,24 @@ export const DOD_SCHEMA = (defaults: LovelaceCardConfig, config: LovelaceCardCon
 
 export const TRICKLE_CHARGE_SCHEMA = (defaults: LovelaceCardConfig, config: LovelaceCardConfig) => {
     let settings: object[] = [
-        HEADING_SCHEMA('Throttle Trickle Charge (if battery charge/discharge power < throttle it will be displayed as zero)'),
+        HEADING_SCHEMA('Filter out small battery charge/discharge values. If the battery charge/discharge is less than filter threshold, display as zero'),
         {
-            name: 'trickle_charge_throttle',
-            label: 'Use Throttle',
-            default: defaults.trickle_charge_throttle,
+            name: 'trickle_charge_filter',
+            label: 'Use Low Value Filter',
+            default: defaults.trickle_charge_filter,
             selector: {
                 boolean: {}
             }
         },
     ];
 
-    if (config.trickle_charge_throttle) {
+    if (config.trickle_charge_filter) {
         settings = [
             ...settings,
             {
-                name: 'trickle_charge_throttle_threshold',
-                label: 'Throttle Threshold',
-                default: defaults.trickle_charge_throttle_threshold,
+                name: 'trickle_charge_filter_threshold',
+                label: 'Filter Threshold',
+                default: defaults.trickle_charge_filter_threshold,
                 selector: {
                     number: {
                         min: 0,

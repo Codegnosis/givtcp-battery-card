@@ -49,7 +49,7 @@ export const DISPLAY_UNITS = {
     KWH: "kWh",
 }
 
-export const TRICKLE_CHARGE_THROTTLE_THRESHOLD = 25
+export const TRICKLE_CHARGE_FILTER_THRESHOLD = 25
 
 export const DISPLAY_ENERGY_TODAY = true;
 
