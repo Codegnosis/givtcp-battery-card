@@ -832,46 +832,46 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
   private get _getBatteryPowerEntity(): HassEntity {
     // can be W or kW
-    return this.hass.states[this._generateEntityName('sensor', '_battery_power')]
+    return this.hass.states[this._getEntityIdOrCustomEntityId('battery_power')]
   }
 
   private get _getSocKwhEntity(): HassEntity {
     // can be Wh or kWh
-    return this.hass.states[this._generateEntityName('sensor', '_soc_kwh')]
+    return this.hass.states[this._getEntityIdOrCustomEntityId('soc_kwh')]
   }
 
   private get _getDischargePowerEntity(): HassEntity {
     // can be W or kW
-    return this.hass.states[this._generateEntityName('sensor', '_discharge_power')]
+    return this.hass.states[this._getEntityIdOrCustomEntityId('discharge_power')]
   }
 
   private get _getChargePowerEntity(): HassEntity {
     // can be W or kW
-    return this.hass.states[this._generateEntityName('sensor', '_charge_power')]
+    return this.hass.states[this._getEntityIdOrCustomEntityId('charge_power')]
   }
 
   private get _getBatteryCapacityKwhEntity(): HassEntity {
-    return this.hass.states[this._generateEntityName('sensor', '_battery_capacity_kwh')]
+    return this.hass.states[this._getEntityIdOrCustomEntityId('battery_capacity_kwh')]
   }
 
   private get _getBatteryPowerReserve(): HassEntity {
-    return this.hass.states[this._generateEntityName('number', '_battery_power_reserve')]
+    return this.hass.states[this._getEntityIdOrCustomEntityId('battery_power_reserve')]
   }
 
   private get _getBatteryChargeRate(): HassEntity {
-    return this.hass.states[this._generateEntityName('number', '_battery_charge_rate')]
+    return this.hass.states[this._getEntityIdOrCustomEntityId('battery_charge_rate')]
   }
 
   private get _getBatteryDischargeRate(): HassEntity {
-    return this.hass.states[this._generateEntityName('number', '_battery_discharge_rate')]
+    return this.hass.states[this._getEntityIdOrCustomEntityId('battery_discharge_rate')]
   }
 
   private get _getChargeEnergyTodayEntity(): HassEntity {
-    return this.hass.states[this._generateEntityName('sensor', '_battery_charge_energy_today_kwh')]
+    return this.hass.states[this._getEntityIdOrCustomEntityId('battery_charge_energy_today_kwh')]
   }
 
   private get _getDischargeEnergyTodayEntity(): HassEntity {
-    return this.hass.states[this._generateEntityName('sensor', '_battery_discharge_energy_today_kwh')]
+    return this.hass.states[this._getEntityIdOrCustomEntityId('battery_discharge_energy_today_kwh')]
   }
 
   private _checkSensorAlive(sId: string): GivTcpCheckEntityResult {
