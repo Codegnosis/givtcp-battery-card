@@ -289,3 +289,113 @@ export const TRICKLE_CHARGE_SCHEMA = (defaults: LovelaceCardConfig, config: Love
 
     return settings;
 }
+
+export const CUSTOM_SENSOR_SCHEMA = (defaults: LovelaceCardConfig, config: LovelaceCardConfig) => {
+    let settings: object[] = [
+        HEADING_SCHEMA('Override automatically detected sensor/entity IDs with custom values'),
+        {
+            name: 'use_custom_sensors',
+            label: 'Use Custom Entity IDs',
+            default: defaults.use_custom_sensors,
+            selector: {
+                boolean: {}
+            }
+        },
+    ];
+
+    if (config.use_custom_sensors) {
+        settings = [
+            ...settings,
+            {
+                name: 'custom_soc',
+                label: 'SOC (e.g. sensor.givtcp_SERIAL_soc)',
+                default: defaults.custom_soc,
+                selector: {
+                    text: {}
+                }
+            },
+            {
+                name: 'custom_battery_power',
+                label: 'Battery Power (e.g. sensor.givtcp_SERIAL_battery_power)',
+                default: defaults.custom_battery_power,
+                selector: {
+                    text: {}
+                }
+            },
+            {
+                name: 'custom_soc_kwh',
+                label: 'SOC kWh (e.g. sensor.givtcp_SERIAL_soc_kwh)',
+                default: defaults.custom_soc_kwh,
+                selector: {
+                    text: {}
+                }
+            },
+            {
+                name: 'custom_discharge_power',
+                label: 'Discharge Power (e.g. sensor.givtcp_SERIAL_discharge_power)',
+                default: defaults.custom_discharge_power,
+                selector: {
+                    text: {}
+                }
+            },
+            {
+                name: 'custom_charge_power',
+                label: 'Charge Power (e.g. sensor.givtcp_SERIAL_charge_power)',
+                default: defaults.custom_charge_power,
+                selector: {
+                    text: {}
+                }
+            },
+            {
+                name: 'custom_battery_capacity_kwh',
+                label: 'Capacity kWh (e.g. sensor.givtcp_SERIAL_battery_capacity_kwh)',
+                default: defaults.custom_battery_capacity_kwh,
+                selector: {
+                    text: {}
+                }
+            },
+            {
+                name: 'custom_battery_charge_energy_today_kwh',
+                label: 'Charge Energy Today (e.g. sensor.givtcp_SERIAL_battery_charge_energy_today_kwh)',
+                default: defaults.custom_battery_charge_energy_today_kwh,
+                selector: {
+                    text: {}
+                }
+            },
+            {
+                name: 'custom_battery_discharge_energy_today_kwh',
+                label: 'Discharge Energy Today (e.g. sensor.givtcp_SERIAL_battery_discharge_energy_today_kwh)',
+                default: defaults.custom_battery_discharge_energy_today_kwh,
+                selector: {
+                    text: {}
+                }
+            },
+            {
+                name: 'custom_battery_power_reserve',
+                label: 'Battery Power Reserve (e.g. number.givtcp_SERIAL_battery_power_reserve)',
+                default: defaults.custom_battery_power_reserve,
+                selector: {
+                    text: {}
+                }
+            },
+            {
+                name: 'custom_battery_charge_rate',
+                label: 'Charge Rate (e.g. number.givtcp_SERIAL_battery_charge_rate)',
+                default: defaults.custom_battery_charge_rate,
+                selector: {
+                    text: {}
+                }
+            },
+            {
+                name: 'custom_battery_discharge_rate',
+                label: 'Discharge Rate (e.g. number.givtcp_SERIAL_battery_discharge_rate)',
+                default: defaults.custom_battery_discharge_rate,
+                selector: {
+                    text: {}
+                }
+            },
+        ];
+    }
+
+    return settings;
+}

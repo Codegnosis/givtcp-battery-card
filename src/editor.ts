@@ -2,7 +2,14 @@ import {fireEvent, HomeAssistant, LovelaceCardConfig, LovelaceCardEditor, Lovela
 import {customElement, property, state} from "lit/decorators.js";
 import {css, CSSResultGroup, html, LitElement, TemplateResult} from "lit";
 import {ConfigUtils} from "./config-utils";
-import {DISPLAY_SCHEMA, DOD_SCHEMA, GENERAL_SCHEMA, SOC_SCHEMA, TRICKLE_CHARGE_SCHEMA} from "./schemas";
+import {
+    CUSTOM_SENSOR_SCHEMA,
+    DISPLAY_SCHEMA,
+    DOD_SCHEMA,
+    GENERAL_SCHEMA,
+    SOC_SCHEMA,
+    TRICKLE_CHARGE_SCHEMA
+} from "./schemas";
 
 @customElement('givtcp-battery-card-editor')
 export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardEditor {
@@ -34,6 +41,8 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
                 return DOD_SCHEMA(defaults, this._config);
             case 4:
                 return TRICKLE_CHARGE_SCHEMA(defaults, this._config);
+            case 5:
+                return CUSTOM_SENSOR_SCHEMA(defaults, this._config);
         }
     }
 
@@ -65,6 +74,7 @@ export class GivTCPBatteryCardEditor extends LitElement implements LovelaceCardE
           <paper-tab>Display</paper-tab>
           <paper-tab>DOD</paper-tab>
           <paper-tab>Filters</paper-tab>
+          <paper-tab>Custom</paper-tab> 
         </ha-tabs>
         <ha-form
           .hass=${this.hass}

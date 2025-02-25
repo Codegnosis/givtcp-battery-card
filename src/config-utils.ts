@@ -56,6 +56,18 @@ export class ConfigUtils {
             enable_debug_mode: false,
             trickle_charge_filter: false,
             trickle_charge_filter_threshold: TRICKLE_CHARGE_FILTER_THRESHOLD,
+            use_custom_sensors: false,
+            custom_soc: "",
+            custom_battery_power: "",
+            custom_soc_kwh: "",
+            custom_discharge_power: "",
+            custom_charge_power: "",
+            custom_battery_capacity_kwh: "",
+            custom_battery_charge_energy_today_kwh: "",
+            custom_battery_discharge_energy_today_kwh: "",
+            custom_battery_power_reserve: "",
+            custom_battery_charge_rate: "",
+            custom_battery_discharge_rate: "",
         };
     }
 

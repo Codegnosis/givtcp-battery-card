@@ -1,4 +1,4 @@
-import {GivTcpEntityMeta} from "./types";
+import {GivTcpExpectedSensors} from "./types";
 
 export const SOC_THRESH_V_HIGH = 80;
 export const SOC_THRESH_V_HIGH_COLOUR = [0, 69, 23]; //#004517
@@ -53,49 +53,49 @@ export const TRICKLE_CHARGE_FILTER_THRESHOLD = 25
 
 export const DISPLAY_ENERGY_TODAY = true;
 
-export const SENSORS_USED: GivTcpEntityMeta[] = [
-    {
+export const SENSORS_USED: GivTcpExpectedSensors = {
+    soc: {
         name: '_soc',
         type: 'sensor'
     },
-    {
+    battery_power: {
         name: '_battery_power',
         type: 'sensor'
     },
-    {
+    soc_kwh: {
         name: '_soc_kwh',
         type: 'sensor'
     },
-    {
+    discharge_power: {
         name: '_discharge_power',
         type: 'sensor'
     },
-    {
+    charge_power: {
         name: '_charge_power',
         type: 'sensor'
     },
-    {
+    battery_capacity_kwh: {
         name: '_battery_capacity_kwh',
         type: 'sensor'
     },
-    {
+    battery_charge_energy_today_kwh: {
         name: '_battery_charge_energy_today_kwh',
         type: 'sensor'
     },
-    {
+    battery_discharge_energy_today_kwh: {
         name: '_battery_discharge_energy_today_kwh',
         type: 'sensor'
     },
-    {
+    battery_power_reserve: {
         name: '_battery_power_reserve',
         type: 'number'
     },
-    {
+    battery_charge_rate: {
         name: '_battery_charge_rate',
         type: 'number'
     },
-    {
+    battery_discharge_rate: {
         name: '_battery_discharge_rate',
         type: 'number'
     },
-]
+}
