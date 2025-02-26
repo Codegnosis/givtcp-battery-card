@@ -158,6 +158,31 @@ soc_threshold_low_colour: --error-color
 soc_threshold_very_low_colour: --error-color
 ```
 
+## Custom Sensor Entity IDs
+
+Once the invertor serial entity ID has been defined, the card will attempt to derive the rest of the 
+required sensors automatically. This default configuration should work for most systems, and users will generally
+only need to define the `sensor.givtcp_abc123_invertor_serial_number` entity.
+
+However, some systems may have non-standard entity IDs, or entity IDs that for one reason or another have been modified
+by GivTCP. In this case, the card will display an error message listing the sensor entity IDs that it cannot find.
+
+In this case, it is possible to set the `use_custom_sensors` configuration value to `true`, and set custom entity IDs.
+
+For example, the card automatically derives `sensor.givtcp_INVERTOR_SERIAL_battery_power` as the sensor to use for
+battery power. The user's system, however, is using `sensor.givtcp123_some_other_name_battery_power`. In this case,
+the card will output an error stating that `sensor.givtcp_INVERTOR_SERIAL_battery_power` cannot be found.
+
+Simple enable the `use_custom_sensors` option, and set the `custom_battery_power` value to
+`sensor.givtcp123_some_other_name_battery_power`
+
+This can be done via the card editor GUI, or directly in the `YAML` configuration, e.g.
+
+```yaml
+use_custom_sensors: true
+custom_battery_power: "sensor.givtcp123_some_other_name_battery_power"
+```
+
 ## Multiple Invertors and Batteries
 
 Multiple invertors and batteries are currently not supported natively in a single card instance. A separate card for each
