@@ -121,7 +121,7 @@ export const SOC_SCHEMA = (defaults: LovelaceCardConfig, config: LovelaceCardCon
 export const DISPLAY_SCHEMA = (defaults: LovelaceCardConfig) => {
 
     return [
-        HEADING_SCHEMA('Power/Capacity'),
+        HEADING_SCHEMA('Power/Capacity display options'),
         {
             type: 'grid',
             schema: [
@@ -208,7 +208,8 @@ export const DISPLAY_SCHEMA = (defaults: LovelaceCardConfig) => {
 export const DOD_SCHEMA = (defaults: LovelaceCardConfig, config: LovelaceCardConfig) => {
 
     let settings: object[] = [
-        HEADING_SCHEMA('Custom DoD to override GivTCP values'),
+        HEADING_SCHEMA('Custom DoD to override values read from GivTCP sensors. This is for display purposes ' +
+            'only and does not affect or modify the battery itself in any way.'),
         {
             name: 'use_custom_dod',
             label: 'Use custom DoD',
@@ -257,7 +258,9 @@ export const DOD_SCHEMA = (defaults: LovelaceCardConfig, config: LovelaceCardCon
 
 export const TRICKLE_CHARGE_SCHEMA = (defaults: LovelaceCardConfig, config: LovelaceCardConfig) => {
     let settings: object[] = [
-        HEADING_SCHEMA('Filter out small battery charge/discharge values. If the battery charge/discharge is less than filter threshold, display as zero'),
+        HEADING_SCHEMA('Filter out small battery charge/discharge values. If the battery charge/discharge is ' +
+            'less than filter threshold, display as zero. This is for display purposes only and does not affect or ' +
+            'modify the battery itself in any way.'),
         {
             name: 'trickle_charge_filter',
             label: 'Use Low Value Filter',
@@ -292,7 +295,8 @@ export const TRICKLE_CHARGE_SCHEMA = (defaults: LovelaceCardConfig, config: Love
 
 export const CUSTOM_SENSOR_SCHEMA = (defaults: LovelaceCardConfig, config: LovelaceCardConfig) => {
     let settings: object[] = [
-        HEADING_SCHEMA('Override automatically detected sensor/entity IDs with custom values'),
+        HEADING_SCHEMA('Advanced configuration. Override automatically detected sensor/entity IDs with ' +
+            'custom values. The card will use these custom entity IDs to query data from GivTCP.'),
         {
             name: 'use_custom_sensors',
             label: 'Use Custom Entity IDs',
