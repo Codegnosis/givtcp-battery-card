@@ -1,22 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  HomeAssistant,
-  LovelaceCardEditor,
-  LovelaceCard,
-  LovelaceCardConfig, fireEvent
-} from 'custom-card-helpers';
-import { LitElement, html, TemplateResult, PropertyValues, CSSResultGroup } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import { HassEntity } from 'home-assistant-js-websocket';
+import {fireEvent, HomeAssistant, LovelaceCard, LovelaceCardConfig, LovelaceCardEditor} from 'custom-card-helpers';
+import {CSSResultGroup, html, LitElement, PropertyValues, TemplateResult} from 'lit';
+import {customElement, property, state} from 'lit/decorators.js';
+import {HassEntity} from 'home-assistant-js-websocket';
 
 import {
+  CALCULATE_RESERVE_FROM_DOD,
+  CUSTOM_DOD,
   DISPLAY_ABS_POWER,
+  DISPLAY_BATTERY_RATES,
+  DISPLAY_CUSTOM_DOD_STATS,
   DISPLAY_DP,
+  DISPLAY_ENERGY_TODAY,
   DISPLAY_TYPE,
   DISPLAY_TYPE_OPTIONS,
+  DISPLAY_UNITS,
   ICON_STATUS_CHARGING,
   ICON_STATUS_DISCHARGING,
   ICON_STATUS_IDLE,
+  SENSORS_USED,
+  SOC_COLOUR_INPUT,
+  SOC_COLOUR_INPUT_TYPES,
   SOC_THRESH_HIGH,
   SOC_THRESH_HIGH_COLOUR,
   SOC_THRESH_LOW,
@@ -26,25 +30,22 @@ import {
   SOC_THRESH_V_HIGH,
   SOC_THRESH_V_HIGH_COLOUR,
   SOC_THRESH_V_LOW_COLOUR,
-  SOC_COLOUR_INPUT,
-  DISPLAY_BATTERY_RATES,
-  USE_CUSTOM_DOD,
-  CUSTOM_DOD,
-  CALCULATE_RESERVE_FROM_DOD,
-  DISPLAY_CUSTOM_DOD_STATS,
-  DISPLAY_UNITS, DISPLAY_ENERGY_TODAY,
-  SOC_COLOUR_INPUT_TYPES,
-  SENSORS_USED,
   TRICKLE_CHARGE_FILTER_THRESHOLD,
+  USE_CUSTOM_DOD,
 } from "./constants";
 
 import './components/countdown'
 import './editor';
-import { styleCss } from './style';
+import {styleCss} from './style';
 
-import { version } from '../package.json';
+import {version} from '../package.json';
 import {ConfigUtils} from "./config-utils";
-import {GivSensorPrefixSuffix, GivTcpBatteryStats, GivTcpCheckEntityResult, GivTcpStats} from "./types";
+import {
+  GivSensorPrefixSuffix,
+  GivTcpBatteryStats,
+  GivTcpCheckEntityResult,
+  GivTcpStats
+} from "./types";
 
 // This puts your card into the UI card picker dialog
 (window as any).customCards = (window as any).customCards || [];
@@ -141,8 +142,8 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
       if (oldHass) {
         let hasChanges = false;
-        for (const e of SENSORS_USED) {
-          const eName = `${e.type}.${this._getSensorPrefix?.prefix}${e.name}${this._getSensorPrefix?.suffix}`
+        for (const [sId, ] of Object.entries(SENSORS_USED)) {
+          const eName = this._getEntityIdOrCustomEntityId(sId)
           if (
             oldHass.states[eName] !== element.hass?.states[eName]
           ) {
@@ -813,66 +814,74 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     return name.suffix === '' && name.prefix === '' ? undefined : name;
   }
 
-  private _getGivTcpEntity(entType: string, entName: string): HassEntity {
-    const s = `${entType}.${this._getSensorPrefix?.prefix}${entName}${this._getSensorPrefix?.suffix}`
-    return this.hass.states[s];
+  private _generateEntityName(entType: string, entName: string): string {
+    return `${entType}.${this._getSensorPrefix?.prefix}${entName}${this._getSensorPrefix?.suffix}`
+  }
+
+  private _getEntityIdOrCustomEntityId(sensor: string): string {
+    const useCustomEntityId = (this.config.use_custom_sensors !== undefined) ? this.config.use_custom_sensors : false;
+    const customId = `custom_${sensor}`;
+    const customEntityId = (this.config[customId] !== undefined && this.config[customId] !== "") ? this.config[customId] : undefined
+    const autoSensor = (SENSORS_USED as any)[sensor]
+    return (useCustomEntityId && customEntityId !== undefined) ? customEntityId : this._generateEntityName(autoSensor.type, autoSensor.name)
   }
 
   private get _getSocEntity(): HassEntity {
-    return this._getGivTcpEntity('sensor', '_soc')
+    return this.hass.states[this._getEntityIdOrCustomEntityId('soc')]
   }
 
   private get _getBatteryPowerEntity(): HassEntity {
     // can be W or kW
-    return this._getGivTcpEntity('sensor', '_battery_power')
+    return this.hass.states[this._getEntityIdOrCustomEntityId('battery_power')]
   }
 
   private get _getSocKwhEntity(): HassEntity {
     // can be Wh or kWh
-    return this._getGivTcpEntity('sensor', '_soc_kwh')
+    return this.hass.states[this._getEntityIdOrCustomEntityId('soc_kwh')]
   }
 
   private get _getDischargePowerEntity(): HassEntity {
     // can be W or kW
-    return this._getGivTcpEntity('sensor', '_discharge_power')
+    return this.hass.states[this._getEntityIdOrCustomEntityId('discharge_power')]
   }
 
   private get _getChargePowerEntity(): HassEntity {
     // can be W or kW
-    return this._getGivTcpEntity('sensor', '_charge_power')
+    return this.hass.states[this._getEntityIdOrCustomEntityId('charge_power')]
   }
 
   private get _getBatteryCapacityKwhEntity(): HassEntity {
-    return this._getGivTcpEntity('sensor', '_battery_capacity_kwh')
+    return this.hass.states[this._getEntityIdOrCustomEntityId('battery_capacity_kwh')]
   }
 
   private get _getBatteryPowerReserve(): HassEntity {
-    return this._getGivTcpEntity('number', '_battery_power_reserve')
+    return this.hass.states[this._getEntityIdOrCustomEntityId('battery_power_reserve')]
   }
 
   private get _getBatteryChargeRate(): HassEntity {
-    return this._getGivTcpEntity('number', '_battery_charge_rate')
+    return this.hass.states[this._getEntityIdOrCustomEntityId('battery_charge_rate')]
   }
 
   private get _getBatteryDischargeRate(): HassEntity {
-    return this._getGivTcpEntity('number', '_battery_discharge_rate')
+    return this.hass.states[this._getEntityIdOrCustomEntityId('battery_discharge_rate')]
   }
 
   private get _getChargeEnergyTodayEntity(): HassEntity {
-    return this._getGivTcpEntity('sensor', '_battery_charge_energy_today_kwh')
+    return this.hass.states[this._getEntityIdOrCustomEntityId('battery_charge_energy_today_kwh')]
   }
 
   private get _getDischargeEnergyTodayEntity(): HassEntity {
-    return this._getGivTcpEntity('sensor', '_battery_discharge_energy_today_kwh')
+    return this.hass.states[this._getEntityIdOrCustomEntityId('battery_discharge_energy_today_kwh')]
   }
 
-  private _checkSensorAlive(entType: string, entName: string): GivTcpCheckEntityResult {
+  private _checkSensorAlive(sId: string): GivTcpCheckEntityResult {
+    const sensor = this._getEntityIdOrCustomEntityId(sId)
     const r: GivTcpCheckEntityResult = {
-      sensor: `${entType}.${this._getSensorPrefix?.prefix}${entName}${this._getSensorPrefix?.suffix}`,
+      sensor: sensor,
       found: false
     }
     try {
-      const s = this._getGivTcpEntity(entType, entName)
+      const s = this.hass.states[sensor]
       r.found = s !== undefined;
     } catch(e) {
       r.found = false
@@ -884,9 +893,8 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
   private _checkSensorsAvailable(): GivTcpCheckEntityResult[] {
     const results: GivTcpCheckEntityResult[] = []
 
-    for(let i = 0; i < SENSORS_USED.length; i += 1) {
-      const s = SENSORS_USED[i]
-      const r = this._checkSensorAlive(s.type, s.name)
+    for (const [sId, ] of Object.entries(SENSORS_USED)) {
+      const r = this._checkSensorAlive(sId)
       results.push(r)
     }
 

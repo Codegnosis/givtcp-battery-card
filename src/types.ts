@@ -41,3 +41,17 @@ export interface GivTcpEntityMeta {
     name: string
     type: string
 }
+
+export interface GivTcpExpectedSensors {
+    soc: GivTcpEntityMeta
+    battery_power: GivTcpEntityMeta
+    soc_kwh: GivTcpEntityMeta
+    discharge_power: GivTcpEntityMeta
+    charge_power: GivTcpEntityMeta
+    battery_capacity_kwh: GivTcpEntityMeta
+    battery_charge_energy_today_kwh: GivTcpEntityMeta
+    battery_discharge_energy_today_kwh: GivTcpEntityMeta
+    battery_power_reserve: GivTcpEntityMeta
+    battery_charge_rate: GivTcpEntityMeta
+    battery_discharge_rate: GivTcpEntityMeta
+}
