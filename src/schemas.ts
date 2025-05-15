@@ -1,6 +1,15 @@
 import {LovelaceCardConfig} from "custom-card-helpers";
 import {DISPLAY_TYPE_OPTIONS, SOC_COLOUR_INPUT_TYPES} from "./constants";
 
+export const TAB_NAMES = {
+    GENERAL: "General",
+    SOC: "SOC",
+    DISPLAY: "Display",
+    DOD: "DOD",
+    FILTERS: "Filters",
+    ADVANCED: "Advanced",
+}
+
 export const GENERAL_SCHEMA = (invertorList: string[], defaults: LovelaceCardConfig) => {
 
     return [
