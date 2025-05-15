@@ -438,7 +438,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
           <span class="status-text status-text-small">${this._getBatteryStatus} @ ${this.calculatedStates.batteryUsageRatePercent.displayStr} max. rate</span>
         </div>
         <div class="status">
-          <div class="rate-wrapper">
+          <div class="progress-bar-wrapper">
             <div class="progress-bar">
               <span class="progress-bar-fill" style="background-color: var(--${pbColour}-color); width: ${this.calculatedStates.batteryUsageRatePercent.displayStr};"></span>
             </div>
@@ -483,7 +483,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
 
     return html`
       <div 
-          class="icon-subtitle-small"
+          class="stats-item power-usage"
           id="gtpc-battery-detail-battery-power"
           data-entity-id="${`sensor.${this._getSensorPrefix?.prefix}_battery_power${this._getSensorPrefix?.suffix}`}"
       >
@@ -491,7 +491,9 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
         <span class="${powerColourClass}">
           ${this.calculatedStates.batteryPower.display} 
         </span>
-        ${this.calculatedStates.batteryPower.displayUnit}
+        <span>
+          ${this.calculatedStates.batteryPower.displayUnit}
+        </span>
       </div>
     `;
   }
@@ -534,9 +536,9 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     }
 
     const timeLeft = html`
-      <div class="stats-block">
-        <span class="stats-value"> ${t0} </span>
-        <div class="stats-subtitle">${estimatedTimeAction}</div>
+      <div class="time-left-wrapper">
+        <span class="time-left-value"> ${t0} </span>
+        <span class="time-left-info">${estimatedTimeAction}</span>
       </div>
     `;
 
@@ -570,9 +572,9 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
     }
 
     const timeUntilBlock = html`
-      <div class="stats-block">
-        <span class="stats-value">${formattedUntil}</span>
-        <div class="stats-subtitle">${timeUntilAction}</div>
+      <div class="time-left-wrapper">
+        <span class="time-left-value">${formattedUntil}</span>
+        <span class="time-left-info">${timeUntilAction}</span>
       </div>
     `;
 
@@ -689,6 +691,8 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       return html``;
     }
 
+    const debugEnabled = (this.config?.enable_debug_mode) ? this.config.enable_debug_mode : false;
+
     // First check status of each required sensor. If any annot be found/return undefined, then
     // display the error to the user
     const checkEntityStatuses = this._checkSensorsAvailable()
@@ -731,6 +735,14 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
       `
     }
 
+    let versionContainer = html``
+
+    if(debugEnabled === true) {
+      versionContainer = html`
+        <span style="text-align: center;">v${version}</span>
+      `
+    }
+
     return html`
       <ha-card>
         <div class="preview">
@@ -744,49 +756,48 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
             <div
                 data-entity-id="${`sensor.${this._getSensorPrefix?.prefix}_soc${this._getSensorPrefix?.suffix}`}"
                 id="gtpc-battery-detail-soc-icon"
-                class="stats-col"
+                class="stats-main"
             >
-              <div class="battery-icon-wrapper">
-                <div style="margin: auto; width: 15px;">
-                </div>
+              <div class="stats-item-wrapper-row">
                 <div style="margin: auto;">
                   <ha-icon
                       icon="${batteryStatusIcon}"
-                      style="--mdc-icon-size: 45px;"
+                      style="--mdc-icon-size: 45px; padding-left: 15px;"
                   ></ha-icon>
                 </div>
                 <div style="margin: auto;">
+                  <div class="battery-icon-wrapper">
                   <ha-icon
                       icon="${batteryIcon}"
-                      style="color:${batteryIconStyle};--mdc-icon-size: 100px;"
+                      style="color:${batteryIconStyle}; --mdc-icon-size: 100px; margin-left:-20px"
                   ></ha-icon>
+                  </div>
                 </div>
               </div>
-              
             </div>
             
-            <div class="stats-col">
-              <span class="icon-info">
-                <span 
-                    class="icon-title"
+            <div class="stats-main">
+              <div class="stats-item-wrapper-col">
+                <div 
+                    class="stats-item"
                     data-entity-id="${`sensor.${this._getSensorPrefix?.prefix}_soc${this._getSensorPrefix?.suffix}`}"
                     id="gtpc-battery-detail-soc-text"
-                > 
-                  ${this.calculatedStates.socPercent.displayStr} 
-                </span>
-                <span 
-                    class="icon-subtitle"
+                >
+                  <span class="soc-percent">${this.calculatedStates.socPercent.displayStr}</span>
+                </div>
+                <div 
+                    class="stats-item"
                     data-entity-id="${`sensor.${this._getSensorPrefix?.prefix}_soc_kwh${this._getSensorPrefix?.suffix}`}"
                     id="gtpc-battery-detail-soc-kwh-text"
                 > 
-                  ${this.calculatedStates.calculatedSocEnergy.displayStr} 
-                </span>
+                  <span class="soc-kwh">${this.calculatedStates.calculatedSocEnergy.displayStr}</span>
+                </div>
                   ${this.renderPowerUsage()}
-              </span>
+              </div>
             </div>
 
-            <div class="stats-col">
-              <div class="stats">
+            <div class="stats-main">
+              <div class="stats-item-wrapper-col">
                 ${this.renderStats()}
               </div>
             </div>
@@ -794,6 +805,7 @@ export class GivTCPBatteryCard extends LitElement implements LovelaceCard {
           
           ${batteryRateData}
           
+          ${versionContainer}
         </div>
       </ha-card>
     `;
